@@ -1,0 +1,9 @@
+{
+  "name": "Portal B2B MWE Autopeças",
+  "description": "Sistema exclusivo para lojistas e parceiros MWE. Catálogo atualizado, gestão de pedidos e estoque em tempo real.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "version": "1.0.0",
+  "author": "MWE Distribuidora"
+}

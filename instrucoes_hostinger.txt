@@ -1,0 +1,30 @@
+CHECKLIST DE CORREÇÃO - POR QUE NÃO CARREGA?
+
+1. ARQUIVO .HTACCESS (OBRIGATÓRIO)
+   Crie um arquivo chamado exatamente '.htaccess' na public_html com o código:
+   ---------------------------------------------------
+   RewriteEngine On
+   RewriteBase /
+   RewriteRule ^index\.html$ - [L]
+   RewriteCond %{REQUEST_FILENAME} !-f
+   RewriteCond %{REQUEST_FILENAME} !-d
+   RewriteRule . /index.html [L]
+   ---------------------------------------------------
+
+2. CAMINHOS NO INDEX.HTML
+   Abra seu 'index.html' na Hostinger e verifique se as chamadas de script estão assim:
+   <script type="module" src="/assets/index-XXXX.js"></script>
+   Se houver um ponto antes da barra (src="./assets/..."), tente remover o ponto se o site estiver na raiz.
+
+3. CONSOLE DO NAVEGADOR (O DIAGNÓSTICO REAL)
+   - Abra seu site no Chrome.
+   - Aperte F12 (Inspecionar) e vá na aba 'Console'.
+   - Se houver erros em VERMELHO, eles dirão se o problema é arquivo faltando (404) ou erro de conexão com a API.
+
+4. TESTE A API DIRETAMENTE
+   Acesse no navegador: https://seu-dominio.com.br/api.php?action=getProducts
+   - Se aparecer um erro de PHP, o problema está nas credenciais do banco dentro do api.php.
+   - Se aparecer "[]" ou uma lista de produtos, a API está OK.
+
+5. VERIFIQUE O services/db.ts
+   O seu frontend só vai carregar os dados se o 'services/db.ts' que foi para a build tiver o código de FETCH apontando para o seu domínio, e não o código de LocalStorage.

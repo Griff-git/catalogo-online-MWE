@@ -1,0 +1,2 @@
+ALTER TABLE settings ADD COLUMN websiteUrl VARCHAR(255) DEFAULT '';
+ALTER TABLE settings ADD COLUMN customAddress TEXT;

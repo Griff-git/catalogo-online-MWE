@@ -1,0 +1,2 @@
+ALTER TABLE products ADD COLUMN promo_price DECIMAL(10, 2) DEFAULT 0.00;
+ALTER TABLE products ADD COLUMN min_stock_display VARCHAR(255) DEFAULT NULL;
