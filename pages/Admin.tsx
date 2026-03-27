@@ -624,10 +624,10 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
+    <>
+    <FeedbackToast message={toast.message} visible={toast.visible} primaryColor={settings.primaryColor} />
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <FeedbackToast message={toast.message} visible={toast.visible} primaryColor={settings.primaryColor} />
-
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Painel Executivo</p>
           <h1 className="text-3xl font-black text-gray-900">Visão Analítica</h1>
@@ -819,6 +819,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
@@ -1154,8 +1155,9 @@ export const AdminProducts: React.FC = () => {
   });
 
   return (
+    <>
+    <FeedbackToast message={toast.message} visible={toast.visible} primaryColor={settings.primaryColor} />
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <FeedbackToast message={toast.message} visible={toast.visible} primaryColor={settings.primaryColor} />
 
       {/* Upload Overlay */}
       {isUploading && (
@@ -1761,6 +1763,7 @@ export const AdminProducts: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
@@ -2590,10 +2593,10 @@ export const AdminSettings: React.FC = () => {
   ];
 
   return (
+    <>
+    <FeedbackToast message="Configurações atualizadas!" visible={showToast} primaryColor={settings.primaryColor} />
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <FeedbackToast message="Configurações atualizadas!" visible={showToast} primaryColor={settings.primaryColor} />
-
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Painel Administrativo</p>
           <h1 className="text-3xl font-black text-gray-900">Configurações</h1>
@@ -3087,5 +3090,6 @@ export const AdminSettings: React.FC = () => {
 
       </div>
     </div>
+    </>
   );
 };
