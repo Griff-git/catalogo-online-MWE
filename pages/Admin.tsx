@@ -1272,8 +1272,8 @@ export const AdminProducts: React.FC = () => {
       {/* Header Visual Revitalizado */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Gestão de Inventário</h1>
-          <p className="text-gray-500 font-medium">Controle seu catálogo de autopeças e níveis de estoque.</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Inventário</p>
+          <h1 className="text-3xl font-black text-gray-900">Catálogo de Peças</h1>
         </div>
 
         <div className="flex gap-4">
@@ -1895,8 +1895,8 @@ export const AdminOrders: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Gestão de Pedidos</h1>
-          <p className="text-gray-500 font-medium">Monitore o fluxo de faturamento e logística.</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Pedidos</p>
+          <h1 className="text-3xl font-black text-gray-900">Faturamento e Logística</h1>
         </div>
 
         <div className="flex gap-4">
@@ -2177,8 +2177,8 @@ export const AdminUsers: React.FC = () => {
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">Gestão de Parceiros</h1>
-          <p className="text-gray-500 font-medium">Controle o acesso e visualize o perfil dos seus lojistas e revendedores.</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Parceiros</p>
+          <h1 className="text-3xl font-black text-gray-900">Lojistas e Revendedores</h1>
         </div>
 
         {/* Métricas Rápidas */}
@@ -2595,8 +2595,8 @@ export const AdminSettings: React.FC = () => {
 
       <div className="flex justify-between items-center">
         <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Painel Administrativo</p>
           <h1 className="text-3xl font-black text-gray-900">Configurações</h1>
-          <p className="text-gray-500 font-medium mt-1">Gerencie a identidade e regras do portal.</p>
         </div>
         <button
           onClick={handleSave}
