@@ -31,22 +31,22 @@ const statusLabels: Record<OrderStatus, string> = {
   CANCELED: 'Cancelado'
 };
 
-const FeedbackToast: React.FC<{ message: string; visible: boolean; primaryColor: string }> = ({ message, visible, primaryColor }) => {
-  if (!visible) return null;
-  return (
-    <div className="fixed bottom-8 right-8 z-[300] animate-in slide-in-from-right-10 fade-in duration-300 pointer-events-none">
-      <div className="bg-white border border-gray-100 shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[300px]">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: primaryColor }}>
-          <Check size={20} />
-        </div>
-        <div>
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Sistema</p>
-          <p className="text-sm font-bold text-gray-900">{message}</p>
-        </div>
+const FeedbackToast: React.FC<{ message: string; visible: boolean; primaryColor: string }> = ({ message, visible, primaryColor }) => (
+  <div
+    className="fixed bottom-8 right-8 z-[300] pointer-events-none transition-all duration-300"
+    style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateX(0)' : 'translateX(120%)', }}
+  >
+    <div className="bg-white border border-gray-100 shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[300px]">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: primaryColor }}>
+        <Check size={20} />
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Sistema</p>
+        <p className="text-sm font-bold text-gray-900">{message}</p>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 const ProductInfoModal: React.FC<{ product: Product; onClose: () => void; primaryColor: string; zIndex?: number }> = ({ product, onClose, primaryColor, zIndex = 250 }) => {
   useEffect(() => {
