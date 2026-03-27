@@ -1,7 +1,7 @@
 {
   "name": "portal-b2b-mwe-autopeças",
   "private": true,
-  "version": "1.2.1",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,17 +9,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "jspdf": "2.5.1",
+    "jspdf-autotable": "3.8.2",
+    "lucide-react": "^0.475.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-router-dom": "^7.10.1",
-    "lucide-react": "^0.475.0",
-    "@google/genai": "^1.32.0",
-    "jspdf": "2.5.1",
-    "jspdf-autotable": "3.8.2",
     "xlsx": "0.18.5"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

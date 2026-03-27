@@ -513,11 +513,13 @@ export const AdminDashboard: React.FC = () => {
     lojistasPendentes: 0,
     pedidosAbertos: 0,
     statusDistribution: {
+      ANALYSIS: 0,
+      APPROVED: 0,
       PENDING: 0,
       SHIPPED: 0,
       COMPLETED: 0,
       CANCELED: 0
-    }
+    } as Record<string, number>
   });
 
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
@@ -1721,7 +1723,7 @@ export const AdminProducts: React.FC = () => {
                             type="button"
                             onClick={() => setFormData(prev => ({
                               ...prev,
-                              compatibility: prev.compatibility.filter(c => c.id !== item.id)
+                              compatibility: (prev.compatibility || []).filter(c => c.id !== item.id)
                             }))}
                             className="ml-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full w-5 h-5 flex items-center justify-center transition-all"
                           >

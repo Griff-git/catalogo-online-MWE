@@ -29,7 +29,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
     };
 
     updateCounts();
-    const interval = setInterval(updateCounts, 5000); // Verifica a cada 5 segundos
+    const interval = setInterval(updateCounts, 60000); // Verifica a cada 60 segundos
     return () => clearInterval(interval);
   }, []);
 
