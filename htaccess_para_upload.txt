@@ -7,6 +7,10 @@ RewriteRule ^api\.php$ - [L]
 # Uploads - servir diretamente
 RewriteRule ^uploads/ - [L]
 
+# Forçar raiz e index.html para dist/
+RewriteRule ^index\.html$ dist/index.html [L]
+RewriteRule ^$ dist/index.html [L]
+
 # Assets estáticos do dist/
 RewriteCond %{REQUEST_URI} ^/assets/
 RewriteRule ^(.*)$ dist/$1 [L]
