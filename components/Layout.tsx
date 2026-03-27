@@ -2,61 +2,36 @@
 import React, { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../App';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, ArrowRight } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { UserStatus, Role } from '../types';
 
-// Transição animada entre Admin e Catálogo
+// Transição simples entre Admin e Catálogo
 const usePageTransition = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionLabel, setTransitionLabel] = useState('');
   const navigate = useNavigate();
-  const { settings } = useContext(AppContext);
 
-  const navigateWithTransition = useCallback((to: string, label: string) => {
-    setTransitionLabel(label);
+  const navigateWithTransition = useCallback((to: string) => {
     setIsTransitioning(true);
     setTimeout(() => {
       navigate(to);
-      setTimeout(() => setIsTransitioning(false), 400);
-    }, 500);
+      setTimeout(() => setIsTransitioning(false), 300);
+    }, 250);
   }, [navigate]);
 
   const TransitionOverlay = () => createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none"
-      style={{ opacity: isTransitioning ? 1 : 0, transition: 'opacity 0.3s ease' }}
-    >
-      {/* Cortina animada */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundColor: settings.primaryColor,
-          transform: isTransitioning ? 'scaleY(1)' : 'scaleY(0)',
-          transformOrigin: 'bottom',
-          transition: 'transform 0.5s cubic-bezier(0.77, 0, 0.175, 1)',
-        }}
-      />
-      {/* Texto central */}
-      <div
-        className="relative z-10 text-center"
-        style={{
-          opacity: isTransitioning ? 1 : 0,
-          transform: isTransitioning ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'all 0.3s ease 0.2s',
-        }}
-      >
-        {settings.logoUrl && (
-          <img src={settings.logoUrl} alt="" className="h-10 mx-auto mb-4 brightness-0 invert" />
-        )}
-        <p className="text-white/80 text-xs font-black uppercase tracking-[0.3em]">{transitionLabel}</p>
-      </div>
-    </div>,
+      className="fixed inset-0 z-[9999] bg-white pointer-events-none"
+      style={{
+        opacity: isTransitioning ? 1 : 0,
+        transition: 'opacity 0.25s ease',
+      }}
+    />,
     document.body
   );
 
-  return { navigateWithTransition, TransitionOverlay, isTransitioning };
+  return { navigateWithTransition, TransitionOverlay };
 };
 
 interface LayoutProps {
@@ -147,7 +122,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
         </nav>
         <div className="p-4 border-t border-gray-100 space-y-1">
           <button
-            onClick={() => { setIsSidebarOpen(false); navigateWithTransition('/catalogo', 'Abrindo Catálogo'); }}
+            onClick={() => { setIsSidebarOpen(false); navigateWithTransition('/catalogo'); }}
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 w-full transition-colors"
           >
             <Store size={18} /> Ir para o Catálogo
@@ -281,7 +256,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
                     {/* Link para Painel Admin (visível apenas para Admin e Revendedores com permissão) */}
                     {user && (user.role === Role.ADMIN || (user.role === Role.RESELLER && (user.permissions || []).includes('admin_panel'))) && (
                       <button
-                        onClick={() => { setIsMenuOpen(false); navigateWithTransition('/admin/dashboard', 'Abrindo Painel Admin'); }}
+                        onClick={() => { setIsMenuOpen(false); navigateWithTransition('/admin/dashboard'); }}
                         className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-all group w-full"
                         style={{ '--hover-color': settings.primaryColor } as any}
                       >
