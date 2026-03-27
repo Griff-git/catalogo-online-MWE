@@ -2636,7 +2636,7 @@ export const AdminSettings: React.FC = () => {
         {settingsTab === 'visual' && (
           <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
-              <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 flex-shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <Palette size={20} />
               </div>
               <div>
@@ -2685,7 +2685,7 @@ export const AdminSettings: React.FC = () => {
         {settingsTab === 'institutional' && (
           <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 flex-shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <Globe size={20} />
               </div>
               <div>
@@ -2723,7 +2723,7 @@ export const AdminSettings: React.FC = () => {
         {settingsTab === 'support' && (
           <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
-              <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center text-green-500 flex-shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <MessageCircle size={20} />
               </div>
               <div>
@@ -2755,7 +2755,7 @@ export const AdminSettings: React.FC = () => {
         {settingsTab === 'social' && (
           <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
-              <div className="w-11 h-11 rounded-xl bg-pink-50 flex items-center justify-center text-pink-500 flex-shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <Share2 size={20} />
               </div>
               <div>
