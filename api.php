@@ -557,7 +557,7 @@ try {
                     throw new Exception("Dados inválidos: esperado array de produtos.");
                 }
 
-                $sql = "INSERT INTO products (id, internalCode, parallelCodes, name, description, manufacturer, vehicle, compatibility_json, application, kitComponents, group_name, position, price, promo_price, min_stock_display, images, stock, active)
+                $sql = "REPLACE INTO products (id, internalCode, parallelCodes, name, description, manufacturer, vehicle, compatibility_json, application, kitComponents, group_name, position, price, promo_price, min_stock_display, images, stock, active)
                         VALUES (:id, :internalCode, :parallelCodes, :name, :description, :manufacturer, :vehicle, :compatibility_json, :application, :kitComponents, :group_name, :position, :price, :promo_price, :min_stock_display, :images, :stock, :active)";
                 $stmt = $conn->prepare($sql);
 
@@ -615,7 +615,7 @@ try {
                     "errors" => $errors
                 ]);
             } catch (Exception $e) {
-                $conn->rollBack();
+                try { $conn->rollBack(); } catch (Exception $rbEx) { /* transação já encerrada */ }
                 http_response_code(500);
                 echo json_encode(["error" => "Erro no upload em massa: " . $e->getMessage()]);
             }

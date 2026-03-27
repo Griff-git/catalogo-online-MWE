@@ -1091,7 +1091,9 @@ export const AdminProducts: React.FC = () => {
             parallelCodes: String(row['Conversão'] || row['Códigos Paralelos'] || ''),
             kitComponents: String(row['Componentes do Kit'] || row.kitComponents || ''),
             images: row['Imagem URL'] ? String(row['Imagem URL']).split(',').map(s => s.trim()) : (row['Imagens'] ? String(row['Imagens']).split(',') : []),
-            active: String(row['Ativo']).toUpperCase() === 'SIM' || String(row['Ativo']).toUpperCase() === 'TRUE'
+            active: row['Ativo'] === undefined || row['Ativo'] === null || row['Ativo'] === ''
+              ? true  // Se não tem coluna "Ativo", produto é ativo por padrão
+              : String(row['Ativo']).toUpperCase() === 'SIM' || String(row['Ativo']).toUpperCase() === 'TRUE' || row['Ativo'] === true || row['Ativo'] === 1
           };
 
           if (product.internalCode) { // Basic validation
