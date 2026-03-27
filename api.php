@@ -121,7 +121,19 @@ function jwtDecode($token, $secret) {
 
 function getAuthUser() {
     global $jwtSecret;
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+
+    // Tentar múltiplas formas de obter o header Authorization (compatibilidade com hosting compartilhado)
+    $authHeader = '';
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+    } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    } elseif (!empty($_SERVER['HTTP_X_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_X_AUTHORIZATION'];
+    }
 
     if (preg_match('/Bearer\s+(.+)/i', $authHeader, $matches)) {
         return jwtDecode($matches[1], $jwtSecret);

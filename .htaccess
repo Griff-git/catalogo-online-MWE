@@ -1,7 +1,13 @@
 DirectoryIndex dist/index.html
 
+# Passar header Authorization para o PHP (Hostinger/Apache remove por padrão)
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 RewriteEngine On
 RewriteBase /
+
+# Garantir que Authorization chegue ao PHP
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 
 # API - servir diretamente
 RewriteRule ^api\.php$ - [L]
