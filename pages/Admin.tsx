@@ -2779,8 +2779,8 @@ export const AdminSettings: React.FC = () => {
         {settingsTab === 'payments' && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <div className="flex items-center justify-between">
+            <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between gap-4">
                 <SectionTitle icon={DollarSign} title="Política Comercial" desc="Configure as condições de pagamento para cada faixa de valor do pedido" />
                 <div className="flex gap-2">
                   <button
