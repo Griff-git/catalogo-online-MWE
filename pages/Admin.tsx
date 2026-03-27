@@ -1,5 +1,5 @@
 
-import { Check, X, Trash2, Edit, Plus, Copy, Search, Archive, Eye, ShieldAlert, ShieldCheck, User as UserIcon, Calendar, Phone, Mail, Building2, FileText, Download, PackageOpen, LayoutDashboard, Settings, Package, ArrowRight, Ban, Power, UserCircle, AlertCircle, FileDown, FileUp, Loader2, ShoppingBag, Info, CarFront, ClipboardList, ImagePlus, Palette, Globe, Share2, MessageCircle, Instagram, Linkedin, CheckCircle2, Save, Facebook, Youtube, Play, ExternalLink, TrendingUp, BarChart3, PieChart, Users2, Clock, DollarSign, AlertTriangle, MoreHorizontal, UserCheck, UserMinus, Truck, CheckCircle, FileSearch, Tag, Folder, Car } from 'lucide-react';
+import { Check, X, Trash2, Edit, Plus, Copy, Search, Archive, Eye, ShieldAlert, ShieldCheck, User as UserIcon, Calendar, Phone, Mail, Building2, FileText, Download, PackageOpen, LayoutDashboard, Settings, Package, ArrowRight, Ban, Power, UserCircle, AlertCircle, FileDown, FileUp, Loader2, ShoppingBag, Info, CarFront, ClipboardList, ImagePlus, Palette, Globe, Share2, MessageCircle, Instagram, Linkedin, CheckCircle2, Save, Facebook, Youtube, Play, ExternalLink, TrendingUp, BarChart3, PieChart, Users2, Clock, DollarSign, AlertTriangle, MoreHorizontal, UserCheck, UserMinus, Truck, CheckCircle, FileSearch, Tag, Folder, Car, ChevronDown } from 'lucide-react';
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { db } from '../services/db';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -2547,6 +2547,7 @@ export const AdminSettings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'visual' | 'institutional' | 'support' | 'social' | 'payments'>('visual');
+  const [expandedPolicies, setExpandedPolicies] = useState<Record<number, boolean>>({});
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -2785,6 +2786,20 @@ export const AdminSettings: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
+                      const policies = (temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES;
+                      const allExpanded = policies.every((_, i) => expandedPolicies[i] !== false);
+                      const newState: Record<number, boolean> = {};
+                      policies.forEach((_, i) => { newState[i] = !allExpanded; });
+                      setExpandedPolicies(newState);
+                    }}
+                    className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all flex items-center gap-1.5"
+                  >
+                    <ChevronDown size={14} className={`transition-transform ${((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).every((_, i) => expandedPolicies[i] !== false) ? '' : 'rotate-180'}`} />
+                    {((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).every((_, i) => expandedPolicies[i] !== false) ? 'Contrair Todas' : 'Expandir Todas'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
                       if (confirm('Deseja restaurar as condições de pagamento para o padrão?')) {
                         setTemp({ ...temp, paymentPolicies: [...PAYMENT_POLICIES] });
                       }
@@ -2802,11 +2817,16 @@ export const AdminSettings: React.FC = () => {
               const getPolicies = () => [...((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES)];
               const isUnlimited = policy.maxValue === Infinity || policy.maxValue === null || (policy.maxValue as number) >= 999999;
               const maxLabel = isUnlimited ? 'Sem Limite' : `R$ ${Number(policy.maxValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+              const isExpanded = expandedPolicies[pIdx] !== false; // expandido por padrão
 
               return (
                 <div key={pIdx} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                  {/* Header da faixa - colorido e compacto */}
-                  <div className="px-8 py-5 flex items-center justify-between" style={{ backgroundColor: `${settings.primaryColor}08`, borderBottom: `2px solid ${settings.primaryColor}15` }}>
+                  {/* Header da faixa - clicável para expandir/contrair */}
+                  <div
+                    className="px-8 py-5 flex items-center justify-between cursor-pointer select-none"
+                    style={{ backgroundColor: `${settings.primaryColor}08`, borderBottom: isExpanded ? `2px solid ${settings.primaryColor}15` : 'none' }}
+                    onClick={() => setExpandedPolicies(prev => ({ ...prev, [pIdx]: !isExpanded }))}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-sm font-black shadow-lg" style={{ backgroundColor: settings.primaryColor }}>
                         {pIdx + 1}
@@ -2814,7 +2834,7 @@ export const AdminSettings: React.FC = () => {
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: settings.primaryColor }}>Faixa {pIdx + 1}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                             <input
                               type="number"
                               step="0.01"
@@ -2850,21 +2870,29 @@ export const AdminSettings: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const current = getPolicies();
-                        current.splice(pIdx, 1);
-                        setTemp({ ...temp, paymentPolicies: current });
-                      }}
-                      className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                      title="Remover faixa"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {!isExpanded && (
+                        <span className="text-[9px] font-bold text-gray-400 mr-2">{policy.options.length} {policy.options.length === 1 ? 'condição' : 'condições'}</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const current = getPolicies();
+                          current.splice(pIdx, 1);
+                          setTemp({ ...temp, paymentPolicies: current });
+                        }}
+                        className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        title="Remover faixa"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <ChevronDown size={18} className={`text-gray-400 transition-transform duration-300 ${isExpanded ? '' : '-rotate-90'}`} />
+                    </div>
                   </div>
 
-                  {/* Opções de pagamento - tabela visual */}
+                  {/* Opções de pagamento - colapsável */}
+                  <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                   <div className="px-8 py-6">
                     <div className="space-y-3">
                       {policy.options.map((opt: any, oIdx: number) => {
@@ -2992,6 +3020,7 @@ export const AdminSettings: React.FC = () => {
                       </button>
                     </div>
                   </div>
+                  </div>{/* fim colapsável */}
                 </div>
               );
             })}
