@@ -2776,108 +2776,118 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'payments' && (
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
-            <SectionTitle icon={DollarSign} title="Política Comercial" desc="Condições de Pagamento por Faixa de Valor" />
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between">
+                <SectionTitle icon={DollarSign} title="Política Comercial" desc="Configure as condições de pagamento para cada faixa de valor do pedido" />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Deseja restaurar as condições de pagamento para o padrão?')) {
+                        setTemp({ ...temp, paymentPolicies: [...PAYMENT_POLICIES] });
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all"
+                  >
+                    Restaurar Padrão
+                  </button>
+                </div>
+              </div>
+            </div>
 
-            <div className="space-y-6 mb-6">
-              {((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).map((policy, pIdx) => {
-                const getPolicies = () => [...((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES)];
-                const maxLabel = (policy.maxValue === Infinity || policy.maxValue === null || (policy.maxValue as number) >= 999999) ? '∞' : `R$ ${Number(policy.maxValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-                return (
-                  <div key={pIdx} className="bg-slate-50/80 rounded-[2rem] border border-gray-100 overflow-hidden">
-                    {/* Header da faixa */}
-                    <div className="px-6 py-4 bg-gradient-to-r from-slate-100 to-transparent flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center text-gray-400 shadow-sm text-xs font-black">{pIdx + 1}</div>
-                        <div>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Faixa de Valor</p>
-                          <p className="text-sm font-black text-gray-700">R$ {Number(policy.minValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} — {maxLabel}</p>
-                        </div>
+            {/* Faixas de Valor */}
+            {((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).map((policy, pIdx) => {
+              const getPolicies = () => [...((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES)];
+              const isUnlimited = policy.maxValue === Infinity || policy.maxValue === null || (policy.maxValue as number) >= 999999;
+              const maxLabel = isUnlimited ? 'Sem Limite' : `R$ ${Number(policy.maxValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+              return (
+                <div key={pIdx} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                  {/* Header da faixa - colorido e compacto */}
+                  <div className="px-8 py-5 flex items-center justify-between" style={{ backgroundColor: `${settings.primaryColor}08`, borderBottom: `2px solid ${settings.primaryColor}15` }}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-sm font-black shadow-lg" style={{ backgroundColor: settings.primaryColor }}>
+                        {pIdx + 1}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const current = getPolicies();
-                          current.splice(pIdx, 1);
-                          setTemp({ ...temp, paymentPolicies: current });
-                        }}
-                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                        title="Remover faixa"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-
-                    <div className="px-6 py-5 space-y-5">
-                      {/* Valor mínimo e máximo */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <InputLabel label="Valor Mínimo (R$)" />
-                          <input
-                            type="number"
-                            step="0.01"
-                            className={inputClass}
-                            value={policy.minValue}
-                            onChange={e => {
-                              const current = getPolicies();
-                              current[pIdx] = { ...current[pIdx], minValue: parseFloat(e.target.value) || 0 };
-                              setTemp({ ...temp, paymentPolicies: current });
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <InputLabel label="Valor Máximo (R$)" />
-                          <div className="relative">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: settings.primaryColor }}>Faixa {pIdx + 1}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-1.5">
                             <input
                               type="number"
                               step="0.01"
-                              className={inputClass}
-                              value={(policy.maxValue === Infinity || policy.maxValue === null || (policy.maxValue as number) >= 999999) ? 999999 : policy.maxValue}
+                              className="w-28 px-3 py-1.5 text-sm font-black text-gray-800 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:outline-none transition-all"
+                              style={{ '--tw-ring-color': `${settings.primaryColor}30` } as any}
+                              value={policy.minValue}
                               onChange={e => {
                                 const current = getPolicies();
-                                const val = parseFloat(e.target.value) || 0;
-                                current[pIdx] = { ...current[pIdx], maxValue: val >= 999999 ? Infinity : val };
+                                current[pIdx] = { ...current[pIdx], minValue: parseFloat(e.target.value) || 0 };
                                 setTemp({ ...temp, paymentPolicies: current });
                               }}
                             />
-                            {(policy.maxValue === Infinity || policy.maxValue === null || (policy.maxValue as number) >= 999999) && (
-                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-emerald-500 uppercase bg-emerald-50 px-2 py-0.5 rounded-md">Sem Limite</span>
+                            <span className="text-gray-400 font-black">até</span>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                step="0.01"
+                                className="w-28 px-3 py-1.5 text-sm font-black text-gray-800 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:outline-none transition-all"
+                                style={{ '--tw-ring-color': `${settings.primaryColor}30` } as any}
+                                value={isUnlimited ? 999999 : policy.maxValue}
+                                onChange={e => {
+                                  const current = getPolicies();
+                                  const val = parseFloat(e.target.value) || 0;
+                                  current[pIdx] = { ...current[pIdx], maxValue: val >= 999999 ? Infinity : val };
+                                  setTemp({ ...temp, paymentPolicies: current });
+                                }}
+                              />
+                            </div>
+                            {isUnlimited && (
+                              <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">Sem Limite</span>
                             )}
                           </div>
                         </div>
                       </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = getPolicies();
+                        current.splice(pIdx, 1);
+                        setTemp({ ...temp, paymentPolicies: current });
+                      }}
+                      className="p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      title="Remover faixa"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
 
-                      {/* Opções de pagamento */}
-                      <div>
-                        <InputLabel label="Opções de Pagamento" />
-                        <div className="space-y-3">
-                          {policy.options.map((opt: any, oIdx: number) => {
-                            const optObj = (typeof opt === 'string') ? { label: opt, days: [] } : opt;
-                            return (
-                              <div key={oIdx} className="bg-white p-4 rounded-2xl border border-gray-100 space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Opção {oIdx + 1}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const current = getPolicies();
-                                      const opts = [...current[pIdx].options];
-                                      opts.splice(oIdx, 1);
-                                      current[pIdx] = { ...current[pIdx], options: opts };
-                                      setTemp({ ...temp, paymentPolicies: current });
-                                    }}
-                                    className="p-1.5 text-gray-300 hover:text-red-500 rounded-lg transition-colors"
-                                  >
-                                    <X size={14} />
-                                  </button>
+                  {/* Opções de pagamento - tabela visual */}
+                  <div className="px-8 py-6">
+                    <div className="space-y-3">
+                      {policy.options.map((opt: any, oIdx: number) => {
+                        const optObj = (typeof opt === 'string') ? { label: opt, days: [] } : opt;
+                        const hasDiscount = (optObj.discountPercent || 0) > 0;
+                        const isAvista = !optObj.days || optObj.days.length === 0;
+
+                        return (
+                          <div key={oIdx} className={`group relative rounded-2xl border transition-all ${hasDiscount ? 'bg-emerald-50/50 border-emerald-100' : 'bg-gray-50/80 border-gray-100'} hover:shadow-md`}>
+                            <div className="p-5">
+                              <div className="flex items-start gap-4">
+                                {/* Ícone tipo de pagamento */}
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isAvista ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                                  {isAvista ? <DollarSign size={18} /> : <Clock size={18} />}
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                  <div>
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1 ml-1">Nome da Opção</label>
+
+                                {/* Conteúdo principal */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <input
-                                      className={`${inputClass} text-sm`}
+                                      className="flex-1 min-w-[200px] px-0 py-0 text-sm font-black text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-gray-300"
                                       value={optObj.label}
-                                      placeholder="Ex: Pagamento parcelado"
+                                      placeholder="Nome da condição (ex: À vista PIX, 28/35/42 dias...)"
                                       onChange={e => {
                                         const current = getPolicies();
                                         const opts = [...current[pIdx].options] as any[];
@@ -2886,108 +2896,119 @@ export const AdminSettings: React.FC = () => {
                                         setTemp({ ...temp, paymentPolicies: current });
                                       }}
                                     />
-                                  </div>
-                                  <div>
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1 ml-1">Parcelas (dias)</label>
-                                    <input
-                                      className={`${inputClass} text-sm`}
-                                      defaultValue={optObj.days && optObj.days.length > 0 ? optObj.days.join(', ') : ''}
-                                      key={`${pIdx}-${oIdx}-${optObj.days?.length || 0}`}
-                                      placeholder="Vazio = à vista. Ex: 28, 35, 42"
-                                      onBlur={e => {
-                                        const current = getPolicies();
-                                        const opts = [...current[pIdx].options] as any[];
-                                        const daysStr = e.target.value;
-                                        const days = daysStr.trim() === '' ? [] : daysStr.split(/[,\/\s]+/).map(Number).filter(n => !isNaN(n) && n > 0);
-                                        opts[oIdx] = { ...optObj, days };
-                                        current[pIdx] = { ...current[pIdx], options: opts };
-                                        setTemp({ ...temp, paymentPolicies: current });
-                                      }}
-                                    />
-                                    {optObj.days && optObj.days.length > 0 ? (
-                                      <p className="text-[9px] text-emerald-500 font-bold mt-1 ml-1">{optObj.days.length}x parcelas — vencimentos em {optObj.days.length > 1 ? optObj.days.slice(0, -1).join(', ') + ' e ' + optObj.days[optObj.days.length - 1] : optObj.days[0]} dias</p>
-                                    ) : (
-                                      <p className="text-[9px] text-gray-400 font-medium mt-1 ml-1">Pagamento à vista (sem parcelas)</p>
+                                    {hasDiscount && (
+                                      <span className="text-[9px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 whitespace-nowrap">
+                                        {optObj.discountPercent}% OFF
+                                      </span>
+                                    )}
+                                    {isAvista && (
+                                      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">À VISTA</span>
+                                    )}
+                                    {!isAvista && optObj.days && (
+                                      <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">{optObj.days.length}x PARCELAS</span>
                                     )}
                                   </div>
-                                  <div>
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1 ml-1">Desconto (%)</label>
-                                    <input
-                                      type="number"
-                                      step="0.5"
-                                      min="0"
-                                      max="100"
-                                      className={`${inputClass} text-sm`}
-                                      value={optObj.discountPercent || ''}
-                                      placeholder="0"
-                                      onChange={e => {
-                                        const current = getPolicies();
-                                        const opts = [...current[pIdx].options] as any[];
-                                        const val = parseFloat(e.target.value) || 0;
-                                        opts[oIdx] = { ...optObj, discountPercent: val > 0 ? val : undefined };
-                                        current[pIdx] = { ...current[pIdx], options: opts };
-                                        setTemp({ ...temp, paymentPolicies: current });
-                                      }}
-                                    />
-                                    {(optObj.discountPercent || 0) > 0 ? (
-                                      <p className="text-[9px] text-emerald-500 font-bold mt-1 ml-1">{optObj.discountPercent}% de desconto</p>
-                                    ) : (
-                                      <p className="text-[9px] text-gray-400 font-medium mt-1 ml-1">Sem desconto</p>
-                                    )}
+
+                                  {/* Linha de detalhes editáveis */}
+                                  <div className="flex items-center gap-4 mt-3 flex-wrap">
+                                    <div className="flex items-center gap-1.5">
+                                      <Clock size={12} className="text-gray-400" />
+                                      <input
+                                        className="w-40 px-2.5 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:outline-none transition-all"
+                                        style={{ '--tw-ring-color': `${settings.primaryColor}30` } as any}
+                                        defaultValue={optObj.days && optObj.days.length > 0 ? optObj.days.join(', ') : ''}
+                                        key={`${pIdx}-${oIdx}-${optObj.days?.length || 0}`}
+                                        placeholder="Vazio = à vista"
+                                        onBlur={e => {
+                                          const current = getPolicies();
+                                          const opts = [...current[pIdx].options] as any[];
+                                          const daysStr = e.target.value;
+                                          const days = daysStr.trim() === '' ? [] : daysStr.split(/[,\/\s]+/).map(Number).filter(n => !isNaN(n) && n > 0);
+                                          opts[oIdx] = { ...optObj, days };
+                                          current[pIdx] = { ...current[pIdx], options: opts };
+                                          setTemp({ ...temp, paymentPolicies: current });
+                                        }}
+                                      />
+                                      <span className="text-[9px] text-gray-400 font-medium">dias</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                      <Tag size={12} className="text-gray-400" />
+                                      <input
+                                        type="number"
+                                        step="0.5"
+                                        min="0"
+                                        max="100"
+                                        className="w-20 px-2.5 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:outline-none transition-all"
+                                        style={{ '--tw-ring-color': `${settings.primaryColor}30` } as any}
+                                        value={optObj.discountPercent || ''}
+                                        placeholder="0"
+                                        onChange={e => {
+                                          const current = getPolicies();
+                                          const opts = [...current[pIdx].options] as any[];
+                                          const val = parseFloat(e.target.value) || 0;
+                                          opts[oIdx] = { ...optObj, discountPercent: val > 0 ? val : undefined };
+                                          current[pIdx] = { ...current[pIdx], options: opts };
+                                          setTemp({ ...temp, paymentPolicies: current });
+                                        }}
+                                      />
+                                      <span className="text-[9px] text-gray-400 font-medium">% desc.</span>
+                                    </div>
                                   </div>
                                 </div>
+
+                                {/* Botão remover */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const current = getPolicies();
+                                    const opts = [...current[pIdx].options];
+                                    opts.splice(oIdx, 1);
+                                    current[pIdx] = { ...current[pIdx], options: opts };
+                                    setTemp({ ...temp, paymentPolicies: current });
+                                  }}
+                                  className="p-2 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                >
+                                  <X size={16} />
+                                </button>
                               </div>
-                            );
-                          })}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const current = getPolicies();
-                              const opts = [...current[pIdx].options, { label: '', days: [] }] as any[];
-                              current[pIdx] = { ...current[pIdx], options: opts };
-                              setTemp({ ...temp, paymentPolicies: current });
-                            }}
-                            className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:border-gray-400 hover:text-gray-600 transition-all flex items-center justify-center gap-2"
-                          >
-                            <Plus size={14} /> Adicionar Opção de Pagamento
-                          </button>
-                        </div>
-                      </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Adicionar opção */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = getPolicies();
+                          const opts = [...current[pIdx].options, { label: '', days: [] }] as any[];
+                          current[pIdx] = { ...current[pIdx], options: opts };
+                          setTemp({ ...temp, paymentPolicies: current });
+                        }}
+                        className="w-full py-3.5 border-2 border-dashed border-gray-200 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:border-gray-400 hover:text-gray-600 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Plus size={14} /> Adicionar Condição
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  const current = [...((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES)];
-                  const lastMax = current.length > 0 ? ((current[current.length - 1].maxValue === Infinity || (current[current.length - 1].maxValue as number) >= 999999) ? 5000 : current[current.length - 1].maxValue) : 0;
-                  current.push({ minValue: (lastMax as number) + 0.01, maxValue: Infinity, options: [{ label: 'À vista', days: [] }] });
-                  setTemp({ ...temp, paymentPolicies: current });
-                }}
-                className="flex-1 py-4 border-2 border-dashed border-gray-200 rounded-2xl text-xs font-black text-gray-400 uppercase tracking-widest hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
-              >
-                <Plus size={16} /> Adicionar Faixa de Valor
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm('Deseja restaurar as condições de pagamento para o padrão?')) {
-                    setTemp({ ...temp, paymentPolicies: [...PAYMENT_POLICIES] });
-                  }
-                }}
-                className="px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all"
-              >
-                Restaurar Padrão
-              </button>
-            </div>
-
-            <p className="text-[10px] text-gray-400 font-medium mt-4 ml-1">
-              Cada opção tem um nome livre e os dias de vencimento das parcelas separados por vírgula. Deixe o campo "Parcelas" vazio para pagamento à vista. Use "999999" para valor máximo sem limite.
-            </p>
+            {/* Adicionar faixa */}
+            <button
+              type="button"
+              onClick={() => {
+                const current = [...((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES)];
+                const lastMax = current.length > 0 ? ((current[current.length - 1].maxValue === Infinity || (current[current.length - 1].maxValue as number) >= 999999) ? 5000 : current[current.length - 1].maxValue) : 0;
+                current.push({ minValue: (lastMax as number) + 0.01, maxValue: Infinity, options: [{ label: 'À vista', days: [] }] });
+                setTemp({ ...temp, paymentPolicies: current });
+              }}
+              className="w-full py-5 bg-white border-2 border-dashed border-gray-200 rounded-[2rem] text-xs font-black text-gray-400 uppercase tracking-widest hover:border-gray-400 hover:text-gray-600 transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Plus size={16} /> Adicionar Nova Faixa de Valor
+            </button>
           </div>
         )}
 
