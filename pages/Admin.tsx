@@ -2787,15 +2787,15 @@ export const AdminSettings: React.FC = () => {
                     type="button"
                     onClick={() => {
                       const policies = (temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES;
-                      const allExpanded = policies.every((_, i) => expandedPolicies[i] !== false);
+                      const allExpanded = policies.every((_, i) => expandedPolicies[i] === true);
                       const newState: Record<number, boolean> = {};
                       policies.forEach((_, i) => { newState[i] = !allExpanded; });
                       setExpandedPolicies(newState);
                     }}
                     className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-100 transition-all flex items-center gap-1.5"
                   >
-                    <ChevronDown size={14} className={`transition-transform ${((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).every((_, i) => expandedPolicies[i] !== false) ? '' : 'rotate-180'}`} />
-                    {((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).every((_, i) => expandedPolicies[i] !== false) ? 'Contrair Todas' : 'Expandir Todas'}
+                    <ChevronDown size={14} className={`transition-transform ${((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).every((_, i) => expandedPolicies[i] === true) ? '' : 'rotate-180'}`} />
+                    {((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES).every((_, i) => expandedPolicies[i] === true) ? 'Contrair Todas' : 'Expandir Todas'}
                   </button>
                   <button
                     type="button"
@@ -2817,7 +2817,7 @@ export const AdminSettings: React.FC = () => {
               const getPolicies = () => [...((temp.paymentPolicies && temp.paymentPolicies.length > 0) ? temp.paymentPolicies : PAYMENT_POLICIES)];
               const isUnlimited = policy.maxValue === Infinity || policy.maxValue === null || (policy.maxValue as number) >= 999999;
               const maxLabel = isUnlimited ? 'Sem Limite' : `R$ ${Number(policy.maxValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-              const isExpanded = expandedPolicies[pIdx] !== false; // expandido por padrão
+              const isExpanded = expandedPolicies[pIdx] === true; // contraído por padrão
 
               return (
                 <div key={pIdx} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
