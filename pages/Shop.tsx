@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search, ShoppingCart, Info, CarFront, Tag, Package, Trash2,
   Minus, Plus, ChevronRight, FileText, Eye, CheckCircle2,
@@ -558,7 +559,7 @@ export const Catalog: React.FC = () => {
         </div>
       )}
 
-      {selectedProduct && (
+      {selectedProduct && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) closeProduct(); }}>
           <div ref={sheetRef} className="bg-white w-full max-w-5xl rounded-t-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[92vh] md:max-h-[90vh] animate-in slide-in-from-bottom-4 md:zoom-in duration-300">
             {/* Drag handle mobile */}
@@ -652,7 +653,7 @@ export const Catalog: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };
@@ -930,7 +931,7 @@ export const Cart: React.FC = () => {
           )}
 
           {/* Quick Add Client Modal */}
-          {showQuickAdd && (
+          {showQuickAdd && createPortal(
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={e => { if (e.target === e.currentTarget) setShowQuickAdd(false); }}>
               <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in duration-300">
                 <h3 className="text-xl font-black text-gray-900 mb-6">Cadastro Rápido de Cliente</h3>
@@ -972,7 +973,7 @@ export const Cart: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+          , document.body)}
 
           <div className="space-y-4 mb-8">
             <div className="flex justify-between text-sm">
@@ -1423,7 +1424,7 @@ export const MyOrders: React.FC = () => {
       </div>
 
       {/* Modal Detalhes do Pedido */}
-      {selectedOrder && (
+      {selectedOrder && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) setSelectedOrder(null); }}>
           <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
             {/* Header */}
@@ -1549,7 +1550,7 @@ export const MyOrders: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };
@@ -1777,7 +1778,7 @@ export const MyClients: React.FC = () => {
       </div>
 
       {/* Modal: Create/Edit Client */}
-      {showForm && (
+      {showForm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}>
           <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-black text-gray-900 mb-6">{editingClient ? 'Editar Cliente' : 'Novo Cliente'}</h3>
@@ -1824,10 +1825,10 @@ export const MyClients: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Client Details */}
-      {selectedDetail && (
+      {selectedDetail && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={e => { if (e.target === e.currentTarget) setSelectedDetail(null); }}>
           <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
             {/* Header */}
@@ -1893,7 +1894,7 @@ export const MyClients: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };

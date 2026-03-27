@@ -1,6 +1,7 @@
 
 import { Check, X, Trash2, Edit, Plus, Copy, Search, Archive, Eye, ShieldAlert, ShieldCheck, User as UserIcon, Calendar, Phone, Mail, Building2, FileText, Download, PackageOpen, LayoutDashboard, Settings, Package, ArrowRight, Ban, Power, UserCircle, AlertCircle, FileDown, FileUp, Loader2, ShoppingBag, Info, CarFront, ClipboardList, ImagePlus, Palette, Globe, Share2, MessageCircle, Instagram, Linkedin, CheckCircle2, Save, Facebook, Youtube, Play, ExternalLink, TrendingUp, BarChart3, PieChart, Users2, Clock, DollarSign, AlertTriangle, MoreHorizontal, UserCheck, UserMinus, Truck, CheckCircle, FileSearch, Tag, Folder, Car, ChevronDown } from 'lucide-react';
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { User, Product, UserStatus, Role, Order, OrderStatus, ResellerClient, GROUPS, POSITIONS, MANUFACTURERS, AppSettings as AppSettingsType, CompatibilityItem, PaymentPolicy, PAYMENT_POLICIES } from '../types';
@@ -31,6 +32,8 @@ const statusLabels: Record<OrderStatus, string> = {
   CANCELED: 'Cancelado'
 };
 
+const Portal: React.FC<{ children: React.ReactNode }> = ({ children }) => createPortal(children, document.body);
+
 const FeedbackToast: React.FC<{ message: string; visible: boolean; primaryColor: string }> = ({ message, visible, primaryColor }) => (
   <div
     className="fixed bottom-8 right-8 z-[300] pointer-events-none transition-all duration-300"
@@ -55,7 +58,7 @@ const ProductInfoModal: React.FC<{ product: Product; onClose: () => void; primar
     window.addEventListener('keydown', onKey);
     return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
   }, [onClose]);
-  return (
+  return createPortal(
     <div className="fixed inset-0 w-full h-full bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl max-w-2xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         <div className="px-6 py-5 md:px-10 md:py-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
@@ -102,7 +105,7 @@ const ProductInfoModal: React.FC<{ product: Product; onClose: () => void; primar
           </div>
         </div>
       </div>
-    </div>
+    </div>, document.body
   );
 };
 
@@ -130,7 +133,7 @@ const OrderDetailsModal: React.FC<{
     if (product) setViewingProduct(product);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 w-full h-full bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl max-w-4xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         <div className="px-6 py-5 md:px-10 md:py-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
@@ -236,7 +239,7 @@ const OrderDetailsModal: React.FC<{
         </div>
       </div>
       {viewingProduct && <ProductInfoModal product={viewingProduct} onClose={() => setViewingProduct(null)} primaryColor={settings.primaryColor} zIndex={zIndex + 100} />}
-    </div>
+    </div>, document.body
   );
 };
 
@@ -316,7 +319,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
 
   const Config = statusConfig[user.status];
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 w-full h-full bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl max-w-5xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col md:flex-row max-h-[90vh]">
         <div className="w-full md:w-1/2 p-6 md:p-10 border-b md:border-b-0 md:border-r border-gray-100 overflow-y-auto">
@@ -494,7 +497,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
           />
         )
       }
-    </div >
+    </div >, document.body
   );
 };
 
@@ -1159,7 +1162,7 @@ export const AdminProducts: React.FC = () => {
     <FeedbackToast message={toast.message} visible={toast.visible} primaryColor={settings.primaryColor} />
 
     {/* Upload Overlay - fora do space-y */}
-    {isUploading && (
+    {isUploading && createPortal(
       <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center space-y-6 animate-in zoom-in duration-300">
             {!uploadComplete ? (
@@ -1245,7 +1248,7 @@ export const AdminProducts: React.FC = () => {
               </>
             )}
           </div>
-        </div>
+        </div>, document.body
     )}
 
     {/* Keyframes para animações de sucesso */}
@@ -1438,7 +1441,7 @@ export const AdminProducts: React.FC = () => {
         )}
       </div>
 
-      {isModalOpen && (
+      {isModalOpen && createPortal(
         <div className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-md flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300">
           <form onSubmit={handleSave} className="bg-gray-100 rounded-[2.5rem] shadow-2xl max-w-7xl w-full h-[90vh] flex overflow-hidden animate-in zoom-in duration-300 border border-gray-200">
 
@@ -1760,7 +1763,7 @@ export const AdminProducts: React.FC = () => {
             </div>
 
           </form>
-        </div>
+        </div>, document.body
       )}
     </div>
     </>
@@ -2395,7 +2398,7 @@ export const AdminUsers: React.FC = () => {
       )}
 
       {/* Modal: Criar Revendedor */}
-      {showCreateReseller && (
+      {showCreateReseller && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-8 md:p-10">
@@ -2538,7 +2541,7 @@ export const AdminUsers: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );
