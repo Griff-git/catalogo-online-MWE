@@ -42,7 +42,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="flex bg-gray-50 min-h-screen overflow-x-hidden">
+    <div className="flex bg-gray-50 min-h-screen">
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
@@ -102,7 +102,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:ml-64 min-h-screen transition-all duration-300 w-full max-w-[100vw]">
+      <div className="flex-1 flex flex-col md:ml-64 min-h-screen w-full max-w-[100vw]">
         {/* Mobile Header for Sidebar Toggle */}
         <header className="md:hidden bg-white h-16 border-b border-gray-200 flex items-center px-4 sticky top-0 z-30 shadow-sm">
           <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-gray-600">
@@ -111,7 +111,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
           <span className="ml-3 font-bold text-gray-900">Menu</span>
         </header>
 
-        <main className="flex-1 p-4 md:p-8 overflow-x-hidden w-full">
+        <main className="flex-1 p-4 md:p-8 w-full">
           {children}
         </main>
       </div>
@@ -149,7 +149,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
           <Link to="/catalogo" className="flex items-center gap-2 group flex-shrink-0">
