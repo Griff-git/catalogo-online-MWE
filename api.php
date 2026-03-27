@@ -170,20 +170,7 @@ function getClientIp() {
 
 function auditLog($conn, $userId, $userName, $action, $entity, $entityId = null, $details = null) {
     try {
-        // Verificar se tabela existe (auto-criar se não)
-        $conn->exec("CREATE TABLE IF NOT EXISTS audit_logs (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            userId VARCHAR(36) NOT NULL,
-            userName VARCHAR(255) DEFAULT '',
-            action VARCHAR(100) NOT NULL,
-            entity VARCHAR(50) NOT NULL,
-            entityId VARCHAR(36) DEFAULT NULL,
-            details TEXT,
-            ip VARCHAR(45) DEFAULT NULL,
-            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_audit_date (createdAt)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
+        // Tabela já criada via migration_v9.sql — não usar DDL aqui (quebra transações)
         $stmt = $conn->prepare("INSERT INTO audit_logs (userId, userName, action, entity, entityId, details, ip) VALUES (:userId, :userName, :action, :entity, :entityId, :details, :ip)");
         $stmt->execute([
             ':userId' => $userId,
@@ -403,16 +390,7 @@ try {
                 jsonResponse(["success" => true, "message" => "Se o e-mail existir, um código de recuperação será enviado."]);
             }
 
-            // Criar tabela se não existir
-            $conn->exec("CREATE TABLE IF NOT EXISTS password_resets (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(100) NOT NULL,
-                token VARCHAR(64) NOT NULL UNIQUE,
-                expiresAt DATETIME NOT NULL,
-                used TINYINT(1) DEFAULT 0,
-                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
+            // Tabela já criada via migration_v9.sql
             $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
 
@@ -569,11 +547,10 @@ try {
 
                 $shouldClean = filter_var($_GET['clean'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
 
+                $countBefore = 0;
                 if ($shouldClean) {
-                    // Contar produtos antes de limpar para o log
                     $countBefore = $conn->query("SELECT COUNT(*) FROM products")->fetchColumn();
                     $conn->exec("DELETE FROM products");
-                    auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'BULK_CLEAN_PRODUCTS', 'products', null, "Removidos $countBefore produtos antes do upload");
                 }
 
                 if (!is_array($input)) {
@@ -625,6 +602,11 @@ try {
                 }
 
                 $conn->commit();
+
+                // Audit logs APÓS o commit (DDL dentro de transação causa erro)
+                if ($shouldClean && $countBefore > 0) {
+                    auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'BULK_CLEAN_PRODUCTS', 'products', null, "Removidos $countBefore produtos antes do upload");
+                }
                 auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'BULK_UPLOAD_PRODUCTS', 'products', null, "Importados: $successCount, Erros: " . count($errors));
 
                 jsonResponse([
@@ -1144,15 +1126,6 @@ try {
                 http_response_code(400);
                 jsonResponse(["error" => "E-mail inválido."]);
             }
-
-            $conn->exec("CREATE TABLE IF NOT EXISTS password_resets (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                email VARCHAR(100) NOT NULL,
-                token VARCHAR(64) NOT NULL UNIQUE,
-                expiresAt DATETIME NOT NULL,
-                used TINYINT(1) DEFAULT 0,
-                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             $token = bin2hex(random_bytes(32));
             $expiresAt = date('Y-m-d H:i:s', strtotime('+24 hours'));
