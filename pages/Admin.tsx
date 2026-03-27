@@ -1157,11 +1157,10 @@ export const AdminProducts: React.FC = () => {
   return (
     <>
     <FeedbackToast message={toast.message} visible={toast.visible} primaryColor={settings.primaryColor} />
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
 
-      {/* Upload Overlay */}
-      {isUploading && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+    {/* Upload Overlay - fora do space-y */}
+    {isUploading && (
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center space-y-6 animate-in zoom-in duration-300">
             {!uploadComplete ? (
               <>
@@ -1247,32 +1246,33 @@ export const AdminProducts: React.FC = () => {
             )}
           </div>
         </div>
-      )}
+    )}
 
-      {/* Keyframes para animações de sucesso */}
-      <style>{`
-        @keyframes checkmark-draw {
-          to { stroke-dashoffset: 0; }
-        }
-        @keyframes success-bounce {
-          0% { opacity: 0; transform: scale(0) translateY(10px); }
-          60% { transform: scale(1.1) translateY(-2px); }
-          100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes success-ring {
-          0% { transform: scale(0); opacity: 0; }
-          50% { transform: scale(1.3); opacity: 0.5; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes confetti-pop {
-          0% { opacity: 0; transform: scale(0) translateY(0); }
-          50% { opacity: 1; transform: scale(1.5); }
-          100% { opacity: 0; transform: scale(0.5) translateY(-30px); }
-        }
-      `}</style>
+    {/* Keyframes para animações de sucesso */}
+    <style>{`
+      @keyframes checkmark-draw {
+        to { stroke-dashoffset: 0; }
+      }
+      @keyframes success-bounce {
+        0% { opacity: 0; transform: scale(0) translateY(10px); }
+        60% { transform: scale(1.1) translateY(-2px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      @keyframes success-ring {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.3); opacity: 0.5; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes confetti-pop {
+        0% { opacity: 0; transform: scale(0) translateY(0); }
+        50% { opacity: 1; transform: scale(1.5); }
+        100% { opacity: 0; transform: scale(0.5) translateY(-30px); }
+      }
+    `}</style>
 
+    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
       {/* Header Visual Revitalizado */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Inventário</p>
           <h1 className="text-3xl font-black text-gray-900">Catálogo de Peças</h1>
@@ -1896,7 +1896,7 @@ export const AdminOrders: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Pedidos</p>
           <h1 className="text-3xl font-black text-gray-900">Faturamento e Logística</h1>
@@ -2178,7 +2178,7 @@ export const AdminUsers: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Parceiros</p>
           <h1 className="text-3xl font-black text-gray-900">Lojistas e Revendedores</h1>
