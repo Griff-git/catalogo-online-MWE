@@ -171,6 +171,7 @@ export const MANUFACTURERS = [
 export interface PaymentOption {
   label: string;
   days: number[];  // installment due days, e.g. [28, 35, 42]. Empty = à vista
+  discountPercent?: number;  // desconto % para esta opção (ex: 4 = 4% de desconto)
 }
 
 export interface PaymentPolicy {
@@ -241,12 +242,17 @@ export interface InstallmentInfo {
   value: number;
   days: number[];
   isAvista: boolean;
+  discountPercent: number;
+  discountedTotal: number;
 }
 
 export const getInstallmentInfo = (option: PaymentOption, total: number): InstallmentInfo => {
+  const discountPercent = option.discountPercent || 0;
+  const discountedTotal = discountPercent > 0 ? total * (1 - discountPercent / 100) : total;
+
   if (!option.days || option.days.length === 0) {
-    return { count: 1, value: total, days: [], isAvista: true };
+    return { count: 1, value: discountedTotal, days: [], isAvista: true, discountPercent, discountedTotal };
   }
   const count = option.days.length;
-  return { count, value: total / count, days: option.days, isAvista: false };
+  return { count, value: discountedTotal / count, days: option.days, isAvista: false, discountPercent, discountedTotal };
 };

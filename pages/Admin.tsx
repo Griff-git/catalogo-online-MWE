@@ -2871,7 +2871,7 @@ export const AdminSettings: React.FC = () => {
                                     <X size={14} />
                                   </button>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                   <div>
                                     <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1 ml-1">Nome da Opção</label>
                                     <input
@@ -2908,6 +2908,31 @@ export const AdminSettings: React.FC = () => {
                                       <p className="text-[9px] text-emerald-500 font-bold mt-1 ml-1">{optObj.days.length}x parcelas — vencimentos em {optObj.days.length > 1 ? optObj.days.slice(0, -1).join(', ') + ' e ' + optObj.days[optObj.days.length - 1] : optObj.days[0]} dias</p>
                                     ) : (
                                       <p className="text-[9px] text-gray-400 font-medium mt-1 ml-1">Pagamento à vista (sem parcelas)</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1 ml-1">Desconto (%)</label>
+                                    <input
+                                      type="number"
+                                      step="0.5"
+                                      min="0"
+                                      max="100"
+                                      className={`${inputClass} text-sm`}
+                                      value={optObj.discountPercent || ''}
+                                      placeholder="0"
+                                      onChange={e => {
+                                        const current = getPolicies();
+                                        const opts = [...current[pIdx].options] as any[];
+                                        const val = parseFloat(e.target.value) || 0;
+                                        opts[oIdx] = { ...optObj, discountPercent: val > 0 ? val : undefined };
+                                        current[pIdx] = { ...current[pIdx], options: opts };
+                                        setTemp({ ...temp, paymentPolicies: current });
+                                      }}
+                                    />
+                                    {(optObj.discountPercent || 0) > 0 ? (
+                                      <p className="text-[9px] text-emerald-500 font-bold mt-1 ml-1">{optObj.discountPercent}% de desconto</p>
+                                    ) : (
+                                      <p className="text-[9px] text-gray-400 font-medium mt-1 ml-1">Sem desconto</p>
                                     )}
                                   </div>
                                 </div>

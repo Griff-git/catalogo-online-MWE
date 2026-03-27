@@ -1048,14 +1048,32 @@ export const Cart: React.FC = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span>{option.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{option.label}</span>
+                        {inst.discountPercent > 0 && (
+                          <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
+                            {inst.discountPercent}% OFF
+                          </span>
+                        )}
+                      </div>
                       {inst.isAvista ? (
                         <p className="text-[11px] font-bold text-gray-400 mt-1">
-                          Valor total: {formatPrice(total)}
+                          {inst.discountPercent > 0 ? (
+                            <>
+                              <span className="line-through text-gray-300 mr-1">{formatPrice(total)}</span>
+                              <span className="text-green-600 font-black">{formatPrice(inst.discountedTotal)}</span>
+                              <span className="text-green-500 ml-1">(economia de {formatPrice(total - inst.discountedTotal)})</span>
+                            </>
+                          ) : (
+                            <>Valor total: {formatPrice(total)}</>
+                          )}
                         </p>
                       ) : (
                         <p className="text-[11px] font-bold text-gray-400 mt-1">
                           {inst.count}x de {formatPrice(inst.value)}
+                          {inst.discountPercent > 0 && (
+                            <span className="text-green-600 ml-1">(total: {formatPrice(inst.discountedTotal)})</span>
+                          )}
                           {inst.days.length > 0 && (
                             <span className="text-gray-300"> — vencimentos em {inst.days.length > 1 ? inst.days.slice(0, -1).join(', ') + ' e ' + inst.days[inst.days.length - 1] : inst.days[0]} dias</span>
                           )}
