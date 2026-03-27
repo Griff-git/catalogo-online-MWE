@@ -1,10 +1,63 @@
 
-import React, { useContext, useState, useRef, useEffect } from 'react';
+import React, { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../App';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, ArrowRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { UserStatus, Role } from '../types';
+
+// Transição animada entre Admin e Catálogo
+const usePageTransition = () => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionLabel, setTransitionLabel] = useState('');
+  const navigate = useNavigate();
+  const { settings } = useContext(AppContext);
+
+  const navigateWithTransition = useCallback((to: string, label: string) => {
+    setTransitionLabel(label);
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate(to);
+      setTimeout(() => setIsTransitioning(false), 400);
+    }, 500);
+  }, [navigate]);
+
+  const TransitionOverlay = () => createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none"
+      style={{ opacity: isTransitioning ? 1 : 0, transition: 'opacity 0.3s ease' }}
+    >
+      {/* Cortina animada */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundColor: settings.primaryColor,
+          transform: isTransitioning ? 'scaleY(1)' : 'scaleY(0)',
+          transformOrigin: 'bottom',
+          transition: 'transform 0.5s cubic-bezier(0.77, 0, 0.175, 1)',
+        }}
+      />
+      {/* Texto central */}
+      <div
+        className="relative z-10 text-center"
+        style={{
+          opacity: isTransitioning ? 1 : 0,
+          transform: isTransitioning ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'all 0.3s ease 0.2s',
+        }}
+      >
+        {settings.logoUrl && (
+          <img src={settings.logoUrl} alt="" className="h-10 mx-auto mb-4 brightness-0 invert" />
+        )}
+        <p className="text-white/80 text-xs font-black uppercase tracking-[0.3em]">{transitionLabel}</p>
+      </div>
+    </div>,
+    document.body
+  );
+
+  return { navigateWithTransition, TransitionOverlay, isTransitioning };
+};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,7 +67,8 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
   const { logout, settings, user } = useContext(AppContext);
   const location = useLocation();
   const [pendingCounts, setPendingCounts] = useState({ users: 0, orders: 0 });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { navigateWithTransition, TransitionOverlay } = usePageTransition();
 
   // Atualiza as contagens de pendências
   useEffect(() => {
@@ -42,6 +96,8 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
+    <>
+    <TransitionOverlay />
     <div className="flex bg-gray-50 min-h-screen">
       {/* Mobile Overlay */}
       {isSidebarOpen && (
@@ -90,13 +146,12 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
           })}
         </nav>
         <div className="p-4 border-t border-gray-100 space-y-1">
-          <Link
-            to="/catalogo"
-            onClick={() => setIsSidebarOpen(false)}
+          <button
+            onClick={() => { setIsSidebarOpen(false); navigateWithTransition('/catalogo', 'Abrindo Catálogo'); }}
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 w-full transition-colors"
           >
             <Store size={18} /> Ir para o Catálogo
-          </Link>
+          </button>
           <button onClick={logout} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 w-full transition-colors"><LogOut size={18} /> Sair</button>
         </div>
       </aside>
@@ -116,6 +171,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
         </main>
       </div>
     </div>
+    </>
   );
 };
 
@@ -123,6 +179,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
   const { logout, cart, settings, user } = useContext(AppContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasPendingOrders, setHasPendingOrders] = useState(false);
+  const { navigateWithTransition, TransitionOverlay } = usePageTransition();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -149,6 +206,8 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
   }, []);
 
   return (
+    <>
+    <TransitionOverlay />
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
@@ -221,15 +280,14 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="px-2 space-y-1">
                     {/* Link para Painel Admin (visível apenas para Admin e Revendedores com permissão) */}
                     {user && (user.role === Role.ADMIN || (user.role === Role.RESELLER && (user.permissions || []).includes('admin_panel'))) && (
-                      <Link
-                        to="/admin/dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-all group"
+                      <button
+                        onClick={() => { setIsMenuOpen(false); navigateWithTransition('/admin/dashboard', 'Abrindo Painel Admin'); }}
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-all group w-full"
                         style={{ '--hover-color': settings.primaryColor } as any}
                       >
                         <Shield size={18} className="text-gray-400 group-hover:text-[var(--hover-color)]" />
                         <span className="group-hover:text-[var(--hover-color)]">Painel Admin</span>
-                      </Link>
+                      </button>
                     )}
 
                     <Link
@@ -430,5 +488,6 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </nav>
     </div>
+    </>
   );
 };
