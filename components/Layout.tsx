@@ -10,24 +10,39 @@ import { UserStatus, Role } from '../types';
 // Transição simples entre Admin e Catálogo
 const usePageTransition = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionIcon, setTransitionIcon] = useState<React.ReactNode>(null);
   const navigate = useNavigate();
 
-  const navigateWithTransition = useCallback((to: string) => {
+  const navigateWithTransition = useCallback((to: string, icon?: React.ReactNode) => {
+    setTransitionIcon(icon || null);
     setIsTransitioning(true);
     setTimeout(() => {
       navigate(to);
       setTimeout(() => setIsTransitioning(false), 300);
-    }, 250);
+    }, 350);
   }, [navigate]);
 
   const TransitionOverlay = () => createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-white pointer-events-none"
+      className="fixed inset-0 z-[9999] bg-white pointer-events-none flex items-center justify-center"
       style={{
         opacity: isTransitioning ? 1 : 0,
         transition: 'opacity 0.25s ease',
       }}
-    />,
+    >
+      {transitionIcon && (
+        <div
+          className="text-gray-200"
+          style={{
+            opacity: isTransitioning ? 1 : 0,
+            transform: isTransitioning ? 'scale(1)' : 'scale(0.8)',
+            transition: 'all 0.3s ease 0.05s',
+          }}
+        >
+          {transitionIcon}
+        </div>
+      )}
+    </div>,
     document.body
   );
 
@@ -122,7 +137,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
         </nav>
         <div className="p-4 border-t border-gray-100 space-y-1">
           <button
-            onClick={() => { setIsSidebarOpen(false); navigateWithTransition('/catalogo'); }}
+            onClick={() => { setIsSidebarOpen(false); navigateWithTransition('/catalogo', <Store size={48} />); }}
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 w-full transition-colors"
           >
             <Store size={18} /> Ir para o Catálogo
@@ -256,7 +271,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
                     {/* Link para Painel Admin (visível apenas para Admin e Revendedores com permissão) */}
                     {user && (user.role === Role.ADMIN || (user.role === Role.RESELLER && (user.permissions || []).includes('admin_panel'))) && (
                       <button
-                        onClick={() => { setIsMenuOpen(false); navigateWithTransition('/admin/dashboard'); }}
+                        onClick={() => { setIsMenuOpen(false); navigateWithTransition('/admin/dashboard', <Shield size={48} />); }}
                         className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 rounded-xl transition-all group w-full"
                         style={{ '--hover-color': settings.primaryColor } as any}
                       >
