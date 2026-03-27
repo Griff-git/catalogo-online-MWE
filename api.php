@@ -449,12 +449,12 @@ try {
             // Público para usuários logados
             requireAuth();
 
-            // Paginação server-side opcional
-            $page = max(1, (int)($_GET['page'] ?? 0));
-            $limit = min(200, max(1, (int)($_GET['limit'] ?? 0)));
+            // Paginação server-side opcional (só ativa se page E limit forem passados explicitamente)
+            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 0;
+            $limit = isset($_GET['limit']) ? min(200, max(1, (int)$_GET['limit'])) : 0;
             $searchQuery = $_GET['search'] ?? '';
 
-            if ($page && $limit) {
+            if ($page > 0 && $limit > 0) {
                 // Paginação ativada
                 $offset = ($page - 1) * $limit;
 
