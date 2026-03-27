@@ -2634,36 +2634,46 @@ export const AdminSettings: React.FC = () => {
       <div className="animate-in fade-in duration-300">
 
         {settingsTab === 'visual' && (
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
-            <SectionTitle icon={Palette} title="Identidade Visual" desc="Cores e Logomarca" />
-            <div className="space-y-6">
-              <div>
-                <InputLabel label="URL da Logomarca (PNG/SVG)" />
-                <input className={inputClass} placeholder="https://exemplo.com/logo.png" value={temp.logoUrl} onChange={e => setTemp({ ...temp, logoUrl: e.target.value })} />
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
+              <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 flex-shrink-0">
+                <Palette size={20} />
               </div>
               <div>
-                <InputLabel label="URL do Favicon (Opcional)" />
-                <input className={inputClass} placeholder="https://exemplo.com/favicon.png" value={temp.faviconUrl || ''} onChange={e => setTemp({ ...temp, faviconUrl: e.target.value })} />
+                <h3 className="text-base font-black text-gray-900 leading-tight">Identidade Visual</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cores e logomarca do catálogo</p>
+              </div>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <InputLabel label="URL da Logomarca (PNG/SVG)" />
+                  <input className={inputClass} placeholder="https://exemplo.com/logo.png" value={temp.logoUrl} onChange={e => setTemp({ ...temp, logoUrl: e.target.value })} />
+                </div>
+                <div>
+                  <InputLabel label="URL do Favicon (Opcional)" />
+                  <input className={inputClass} placeholder="https://exemplo.com/favicon.png" value={temp.faviconUrl || ''} onChange={e => setTemp({ ...temp, faviconUrl: e.target.value })} />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <InputLabel label="Cor Primária" />
-                  <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100">
-                    <input type="color" className="w-12 h-12 rounded-xl cursor-pointer border-none bg-transparent" value={temp.primaryColor} onChange={e => setTemp({ ...temp, primaryColor: e.target.value })} />
+                  <div className="flex items-center gap-3 bg-gray-50 p-2.5 rounded-2xl border border-gray-100">
+                    <input type="color" className="w-10 h-10 rounded-xl cursor-pointer border-none bg-transparent" value={temp.primaryColor} onChange={e => setTemp({ ...temp, primaryColor: e.target.value })} />
                     <span className="text-xs font-mono font-bold text-gray-500 uppercase">{temp.primaryColor}</span>
                   </div>
                 </div>
                 <div>
                   <InputLabel label="Cor Secundária" />
-                  <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100">
-                    <input type="color" className="w-12 h-12 rounded-xl cursor-pointer border-none bg-transparent" value={temp.secondaryColor} onChange={e => setTemp({ ...temp, secondaryColor: e.target.value })} />
+                  <div className="flex items-center gap-3 bg-gray-50 p-2.5 rounded-2xl border border-gray-100">
+                    <input type="color" className="w-10 h-10 rounded-xl cursor-pointer border-none bg-transparent" value={temp.secondaryColor} onChange={e => setTemp({ ...temp, secondaryColor: e.target.value })} />
                     <span className="text-xs font-mono font-bold text-gray-500 uppercase">{temp.secondaryColor}</span>
                   </div>
                 </div>
               </div>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-dashed border-gray-200">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Prévia das Cores</p>
-                <div className="flex gap-2 mt-2">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-2">Prévia das Cores</p>
+                <div className="flex gap-2">
                   <div className="flex-1 h-8 rounded-lg shadow-sm" style={{ backgroundColor: temp.primaryColor }}></div>
                   <div className="flex-1 h-8 rounded-lg shadow-sm" style={{ backgroundColor: temp.secondaryColor }}></div>
                 </div>
@@ -2673,9 +2683,17 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'institutional' && (
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
-            <SectionTitle icon={Globe} title="Institucional" desc="Dados do Catálogo" />
-            <div className="space-y-6">
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 flex-shrink-0">
+                <Globe size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-gray-900 leading-tight">Institucional</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dados da empresa e textos do catálogo</p>
+              </div>
+            </div>
+            <div className="p-8 space-y-6">
               <div>
                 <InputLabel label="Nome da Empresa / Catálogo" />
                 <input className={inputClass} value={temp.companyName} onChange={e => setTemp({ ...temp, companyName: e.target.value })} />
@@ -2686,12 +2704,12 @@ export const AdminSettings: React.FC = () => {
               </div>
               <div>
                 <InputLabel label="Texto do Rodapé (Copyright)" />
-                <textarea className={`${inputClass} h-32 resize-none`} value={temp.footerText} onChange={e => setTemp({ ...temp, footerText: e.target.value })} />
+                <textarea className={`${inputClass} h-24 resize-none`} value={temp.footerText} onChange={e => setTemp({ ...temp, footerText: e.target.value })} />
               </div>
               <div>
                 <InputLabel label="Banner Promocional (URL da Imagem)" />
                 <input className={inputClass} placeholder="https://exemplo.com/banner-promo.jpg" value={temp.promoBannerUrl || ''} onChange={e => setTemp({ ...temp, promoBannerUrl: e.target.value })} />
-                <p className="text-[9px] text-gray-400 font-medium mt-2 ml-1">Exibido no topo do catálogo para todos os usuários. Deixe vazio para desativar. Resolução recomendada: <span className="font-bold text-gray-500">1920 × 480px</span> (proporção 4:1).</p>
+                <p className="text-[9px] text-gray-400 font-medium mt-2 ml-1">Exibido no topo do catálogo. Deixe vazio para desativar. Recomendado: <span className="font-bold text-gray-500">1920 × 480px</span></p>
                 {temp.promoBannerUrl && (
                   <div className="mt-3 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
                     <img src={temp.promoBannerUrl} alt="Preview do banner" className="w-full h-auto object-cover max-h-[160px]" onError={e => (e.currentTarget.style.display = 'none')} />
@@ -2703,10 +2721,18 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'support' && (
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
-            <SectionTitle icon={MessageCircle} title="Canais de Atendimento" desc="Suporte ao Lojista" />
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
+              <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center text-green-500 flex-shrink-0">
+                <MessageCircle size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-gray-900 leading-tight">Canais de Atendimento</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Suporte e contato com o lojista</p>
+              </div>
+            </div>
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <InputLabel label="E-mail de Suporte" />
                   <div className="relative">
@@ -2727,49 +2753,59 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'social' && (
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm">
-            <SectionTitle icon={Share2} title="Redes Sociais" desc="Links Públicos" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <InputLabel label="Instagram URL" />
-                <div className="relative">
-                  <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input className={`${inputClass} pl-12 text-xs`} placeholder="https://instagram.com/..." value={temp.instagramUrl} onChange={e => setTemp({ ...temp, instagramUrl: e.target.value })} />
-                </div>
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
+              <div className="w-11 h-11 rounded-xl bg-pink-50 flex items-center justify-center text-pink-500 flex-shrink-0">
+                <Share2 size={20} />
               </div>
               <div>
-                <InputLabel label="Facebook URL" />
-                <div className="relative">
-                  <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input className={`${inputClass} pl-12 text-xs`} placeholder="https://facebook.com/..." value={temp.facebookUrl} onChange={e => setTemp({ ...temp, facebookUrl: e.target.value })} />
-                </div>
+                <h3 className="text-base font-black text-gray-900 leading-tight">Redes Sociais</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Links públicos exibidos no rodapé</p>
               </div>
-              <div>
-                <InputLabel label="YouTube URL" />
-                <div className="relative">
-                  <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input className={`${inputClass} pl-12 text-xs`} placeholder="https://youtube.com/..." value={temp.youtubeUrl} onChange={e => setTemp({ ...temp, youtubeUrl: e.target.value })} />
+            </div>
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <InputLabel label="Instagram" />
+                  <div className="relative">
+                    <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input className={`${inputClass} pl-12 text-xs`} placeholder="https://instagram.com/..." value={temp.instagramUrl} onChange={e => setTemp({ ...temp, instagramUrl: e.target.value })} />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <InputLabel label="TikTok URL" />
-                <div className="relative">
-                  <Play className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input className={`${inputClass} pl-12 text-xs`} placeholder="https://tiktok.com/@..." value={temp.tiktokUrl} onChange={e => setTemp({ ...temp, tiktokUrl: e.target.value })} />
+                <div>
+                  <InputLabel label="Facebook" />
+                  <div className="relative">
+                    <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input className={`${inputClass} pl-12 text-xs`} placeholder="https://facebook.com/..." value={temp.facebookUrl} onChange={e => setTemp({ ...temp, facebookUrl: e.target.value })} />
+                  </div>
                 </div>
-              </div>
-              <div className="md:col-span-2">
-                <InputLabel label="LinkedIn URL" />
-                <div className="relative">
-                  <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input className={`${inputClass} pl-12 text-xs`} placeholder="https://linkedin.com/company/..." value={temp.linkedinUrl} onChange={e => setTemp({ ...temp, linkedinUrl: e.target.value })} />
+                <div>
+                  <InputLabel label="YouTube" />
+                  <div className="relative">
+                    <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input className={`${inputClass} pl-12 text-xs`} placeholder="https://youtube.com/..." value={temp.youtubeUrl} onChange={e => setTemp({ ...temp, youtubeUrl: e.target.value })} />
+                  </div>
                 </div>
-              </div>
-              <div className="md:col-span-2">
-                <InputLabel label="Site Institucional URL" />
-                <div className="relative">
-                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                  <input className={`${inputClass} pl-12 text-xs`} placeholder="https://www.meusite.com.br" value={temp.websiteUrl} onChange={e => setTemp({ ...temp, websiteUrl: e.target.value })} />
+                <div>
+                  <InputLabel label="TikTok" />
+                  <div className="relative">
+                    <Play className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input className={`${inputClass} pl-12 text-xs`} placeholder="https://tiktok.com/@..." value={temp.tiktokUrl} onChange={e => setTemp({ ...temp, tiktokUrl: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <InputLabel label="LinkedIn" />
+                  <div className="relative">
+                    <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input className={`${inputClass} pl-12 text-xs`} placeholder="https://linkedin.com/company/..." value={temp.linkedinUrl} onChange={e => setTemp({ ...temp, linkedinUrl: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <InputLabel label="Site Institucional" />
+                  <div className="relative">
+                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                    <input className={`${inputClass} pl-12 text-xs`} placeholder="https://www.meusite.com.br" value={temp.websiteUrl} onChange={e => setTemp({ ...temp, websiteUrl: e.target.value })} />
+                  </div>
                 </div>
               </div>
             </div>
