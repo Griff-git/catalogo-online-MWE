@@ -8,6 +8,11 @@ export default defineConfig({
     host: '0.0.0.0',
   },
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      input: path.resolve(__dirname, 'index.dev.html'),
+    }
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),

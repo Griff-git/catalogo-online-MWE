@@ -90,15 +90,12 @@ const App: React.FC = () => {
           } catch (e) { /* ignore */ }
         }
 
-        // Carregar settings (precisa do token para API autenticada)
-        // Se não tem token, usa defaults
-        if (token) {
-          try {
-            const savedSettings = await db.getSettings();
-            setSettings(savedSettings);
-          } catch (e) {
-            console.warn('Erro ao carregar configurações, usando defaults');
-          }
+        // Carregar settings (endpoint público - branding na tela de login)
+        try {
+          const savedSettings = await db.getSettings();
+          setSettings(savedSettings);
+        } catch (e) {
+          console.warn('Erro ao carregar configurações, usando defaults');
         }
       } catch (e) {
         console.error("Erro ao inicializar app:", e);

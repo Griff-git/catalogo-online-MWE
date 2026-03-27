@@ -835,8 +835,7 @@ try {
         // CONFIGURAÇÕES
         // =========================================================
         case 'getSettings':
-            // Settings é acessível para todos os logados
-            requireAuth();
+            // Settings é público (branding exibido na tela de login)
 
             $stmt = $conn->query("SELECT * FROM settings WHERE id = 1");
             $settings = $stmt->fetch();

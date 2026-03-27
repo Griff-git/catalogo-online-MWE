@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html index.html",
+    "build": "vite build && cp dist/index.dev.html dist/index.html && cp dist/index.dev.html index.html",
     "preview": "vite preview"
   },
   "dependencies": {
