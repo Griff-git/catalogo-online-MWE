@@ -168,7 +168,7 @@ export const Login: React.FC = () => {
 
       <div className="mt-8 text-center space-y-2 animate-in fade-in duration-1000">
         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-          Catálogo Online v2.0
+          Catálogo Online v2.0.1
         </p>
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
           Desenvolvido por <a href="https://www.instagram.com/o__guii/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gray-900 underline decoration-gray-200">Guilherme Mendonça</a>
