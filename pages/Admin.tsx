@@ -2781,7 +2781,15 @@ export const AdminSettings: React.FC = () => {
             {/* Header */}
             <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-gray-100 shadow-sm">
               <div className="flex items-center justify-between gap-4">
-                <SectionTitle icon={DollarSign} title="Política Comercial" desc="Configure as condições de pagamento para cada faixa de valor do pedido" />
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 shadow-sm flex-shrink-0">
+                    <DollarSign size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-gray-900 leading-tight">Política Comercial</h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Condições de pagamento por faixa de valor</p>
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
