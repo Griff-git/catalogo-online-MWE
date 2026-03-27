@@ -1,0 +1,70 @@
+DirectoryIndex dist/index.html
+
+RewriteEngine On
+RewriteBase /
+
+# API - servir diretamente
+RewriteRule ^api\.php$ - [L]
+
+# Uploads - servir diretamente
+RewriteRule ^uploads/ - [L]
+
+# Forçar raiz e index.html para dist/
+RewriteRule ^index\.html$ dist/index.html [L]
+RewriteRule ^/?$ dist/index.html [L]
+
+# Assets estáticos do dist/
+RewriteCond %{REQUEST_URI} ^/assets/
+RewriteRule ^(.*)$ dist/$1 [L]
+
+# SPA Routing - tudo que não for arquivo real vai para dist/index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . dist/index.html [L]
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# Bloquear acesso a arquivos sensíveis
+<FilesMatch "\.(env|sql|log|md|txt|json)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Permitir acesso ao api.php
+<Files "api.php">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+</Files>
+
+# Proteger diretório de uploads - apenas imagens
+<IfModule mod_rewrite.c>
+    RewriteRule ^uploads/.*\.php$ - [F,L]
+</IfModule>
+
+# Comprimir respostas
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/json application/javascript text/xml application/xml
+</IfModule>
+
+# Cache de assets estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
