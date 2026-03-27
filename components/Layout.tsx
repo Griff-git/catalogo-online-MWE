@@ -18,8 +18,8 @@ const usePageTransition = () => {
     setIsTransitioning(true);
     setTimeout(() => {
       navigate(to);
-      setTimeout(() => setIsTransitioning(false), 300);
-    }, 350);
+      setTimeout(() => setIsTransitioning(false), 600);
+    }, 700);
   }, [navigate]);
 
   const TransitionOverlay = () => createPortal(
@@ -27,7 +27,7 @@ const usePageTransition = () => {
       className="fixed inset-0 z-[9999] bg-white pointer-events-none flex items-center justify-center"
       style={{
         opacity: isTransitioning ? 1 : 0,
-        transition: 'opacity 0.25s ease',
+        transition: 'opacity 0.5s ease',
       }}
     >
       {transitionIcon && (
@@ -36,7 +36,7 @@ const usePageTransition = () => {
           style={{
             opacity: isTransitioning ? 1 : 0,
             transform: isTransitioning ? 'scale(1)' : 'scale(0.8)',
-            transition: 'all 0.3s ease 0.05s',
+            transition: 'all 0.6s ease 0.1s',
           }}
         >
           {transitionIcon}
