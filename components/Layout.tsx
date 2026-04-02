@@ -243,7 +243,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
                   )}
                 </div>
                 <div className="text-left hidden sm:block">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Minha Conta</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">{user?.role === 'RESELLER' ? 'Revendedor' : 'Minha Conta'}</p>
                   <p className="text-xs font-bold text-gray-900 truncate max-w-[120px]">{user?.storeName}</p>
                 </div>
                 <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 hidden sm:block ${isMenuOpen ? 'rotate-180' : ''}`} />

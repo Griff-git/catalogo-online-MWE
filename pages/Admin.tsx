@@ -2350,7 +2350,6 @@ export const AdminUsers: React.FC = () => {
               </div>
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
                 <StatusBadge status={u.status} />
-                <RoleBadge role={u.role} />
               </div>
             </div>
 
@@ -2377,9 +2376,9 @@ export const AdminUsers: React.FC = () => {
               {u.permissions?.includes('admin_panel') && (
                 <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-gray-900 text-white rounded-md">Admin</span>
               )}
-              {u.permissions?.includes('catalog') && (
-                <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-gray-200 text-gray-600 rounded-md">Catálogo</span>
-              )}
+              <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${u.role === 'RESELLER' ? 'bg-purple-50 text-purple-700 border border-purple-100' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>
+                {u.role === 'RESELLER' ? 'Revendedor' : 'Cliente'}
+              </span>
               <div className="flex-1" />
               {u.phone && (
                 <a
