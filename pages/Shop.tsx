@@ -153,7 +153,7 @@ export const Catalog: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedPosition, setSelectedPosition] = useState('');
-  const [sortBy, setSortBy] = useState<'relevance' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'>('relevance');
+  const [sortBy, setSortBy] = useState<'relevance' | 'code-asc' | 'code-desc' | 'price-asc' | 'price-desc'>('relevance');
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -222,10 +222,10 @@ export const Catalog: React.FC = () => {
     return matchesSearch && matchesGroup && matchesManufacturer && matchesVehicle && matchesYear && matchesPosition;
   }).sort((a, b) => {
     switch (sortBy) {
-      case 'name-asc':
-        return a.name.localeCompare(b.name);
-      case 'name-desc':
-        return b.name.localeCompare(a.name);
+      case 'code-asc':
+        return a.internalCode.localeCompare(b.internalCode);
+      case 'code-desc':
+        return b.internalCode.localeCompare(a.internalCode);
       case 'price-asc':
         return a.price - b.price;
       case 'price-desc':
@@ -488,8 +488,8 @@ export const Catalog: React.FC = () => {
               className="bg-white border border-gray-200 rounded-xl py-2 px-3 font-bold text-sm text-gray-700 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 w-full sm:w-auto"
             >
               <option value="relevance">Relevância</option>
-              <option value="name-asc">Nome (A-Z)</option>
-              <option value="name-desc">Nome (Z-A)</option>
+<option value="code-asc">Código (A-Z)</option>
+              <option value="code-desc">Código (Z-A)</option>
               <option value="price-asc">Menor Preço</option>
               <option value="price-desc">Maior Preço</option>
             </select>
@@ -571,8 +571,8 @@ export const Catalog: React.FC = () => {
             >
               <div className="w-12 h-1.5 rounded-full bg-gray-300"></div>
             </div>
-            <div className="w-full md:w-1/2 bg-slate-50 p-4 md:p-8 flex items-center justify-center aspect-square md:aspect-auto max-h-[35vh] md:max-h-none">
-              <img src={selectedProduct.images[0] || 'https://placehold.co/400x400/f1f5f9/64748b?text=Imagem+Em+Breve'} className="max-w-full max-h-full object-contain mix-blend-multiply" />
+            <div className="w-full md:w-1/2 bg-slate-50 p-4 md:p-8 flex items-center justify-center aspect-square md:aspect-auto max-h-[35vh] md:max-h-none" onContextMenu={e => e.preventDefault()}>
+              <img src={selectedProduct.images[0] || 'https://placehold.co/400x400/f1f5f9/64748b?text=Imagem+Em+Breve'} className="max-w-full max-h-full object-contain mix-blend-multiply select-none pointer-events-none" draggable={false} />
             </div>
             {/* Modal Right Side */}
             <div className="w-full md:w-1/2 p-5 md:p-8 pt-3 md:pt-6 overflow-y-auto flex flex-col relative">
@@ -821,8 +821,8 @@ export const Cart: React.FC = () => {
           const itemTotal = (disc > 0 ? discPrice : item.price) * item.quantity;
           return (
             <div key={item.id} className="bg-white p-4 md:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-3 md:gap-6 group hover:border-gray-200 transition-all">
-              <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-slate-50 overflow-hidden flex-shrink-0">
-                <img src={item.images[0] || 'https://placehold.co/400x400/f1f5f9/64748b?text=Imagem+Em+Breve'} className="w-full h-full object-cover" />
+              <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-slate-50 overflow-hidden flex-shrink-0" onContextMenu={e => e.preventDefault()}>
+                <img src={item.images[0] || 'https://placehold.co/400x400/f1f5f9/64748b?text=Imagem+Em+Breve'} className="w-full h-full object-cover select-none pointer-events-none" draggable={false} />
               </div>
               <div className="flex-1 min-w-0 overflow-hidden">
                 <h3 className="font-extrabold text-gray-900 leading-tight mb-1 truncate">{item.name}</h3>
@@ -1063,7 +1063,7 @@ export const Cart: React.FC = () => {
                             <>
                               <span className="line-through text-gray-300 mr-1">{formatPrice(total)}</span>
                               <span className="text-green-600 font-black">{formatPrice(inst.discountedTotal)}</span>
-                              <span className="text-green-500 ml-1">(economia de {formatPrice(total - inst.discountedTotal)})</span>
+                              <span className="text-green-500 ml-1">(economize {formatPrice(total - inst.discountedTotal)})</span>
                             </>
                           ) : (
                             <>Valor total: {formatPrice(total)}</>

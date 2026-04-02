@@ -834,6 +834,7 @@ export const AdminProducts: React.FC = () => {
   const [formData, setFormData] = useState<Partial<Product>>({});
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: '' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<'relevance' | 'code-asc' | 'code-desc' | 'price-asc' | 'price-desc'>('relevance');
   const itemsPerPage = 20;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -1155,6 +1156,20 @@ export const AdminProducts: React.FC = () => {
       normalize(internal).includes(term) ||
       normalize(app).includes(term) ||
       normalize(parallel).includes(term);
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'code-asc':
+        return (a.internalCode || '').localeCompare(b.internalCode || '');
+      case 'code-desc':
+        return (b.internalCode || '').localeCompare(a.internalCode || '');
+      case 'price-asc':
+        return (a.price || 0) - (b.price || 0);
+      case 'price-desc':
+        return (b.price || 0) - (a.price || 0);
+      case 'relevance':
+      default:
+        return 0;
+    }
   });
 
   return (
@@ -1326,12 +1341,26 @@ export const AdminProducts: React.FC = () => {
             className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 font-bold transition-all text-sm"
             style={{ '--tw-ring-color': `${settings.primaryColor}20` } as any}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
           />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0">Ordenar por</span>
+          <select
+            value={sortBy}
+            onChange={e => { setSortBy(e.target.value as any); setCurrentPage(1); }}
+            className="bg-white border border-gray-200 rounded-xl py-2 px-3 font-bold text-sm text-gray-700 outline-none focus:border-orange-400/50 focus:ring-2 focus:ring-orange-400/20 w-full sm:w-auto"
+          >
+            <option value="relevance">Relevância</option>
+            <option value="code-asc">Código (A-Z)</option>
+            <option value="code-desc">Código (Z-A)</option>
+            <option value="price-asc">Menor Preço</option>
+            <option value="price-desc">Maior Preço</option>
+          </select>
         </div>
       </div>
 
-      {/* Tabela Revitalizada */}
       {/* Tabela Revitalizada */}
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
@@ -1366,13 +1395,13 @@ export const AdminProducts: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-8 py-5">
-                      {p.promo_price && p.promo_price > 0 && p.promo_price < p.price ? (
+                      {p.promo_price && p.promo_price > 0 && p.promo_price < (p.price || 0) ? (
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-gray-400 line-through font-bold">R$ {formatPrice(p.price)}</span>
+                          <span className="text-[10px] text-gray-400 line-through font-bold">R$ {formatPrice(p.price || 0)}</span>
                           <span className="text-sm font-black text-red-600">R$ {formatPrice(p.promo_price)}</span>
                         </div>
                       ) : (
-                        <p className="text-sm font-black text-gray-900">R$ {formatPrice(p.price)}</p>
+                        <p className="text-sm font-black text-gray-900">R$ {formatPrice(p.price || 0)}</p>
                       )}
                     </td>
                     <td className="px-8 py-5 text-center">
