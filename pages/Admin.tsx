@@ -243,7 +243,7 @@ const OrderDetailsModal: React.FC<{
   );
 };
 
-const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpdate: (s: UserStatus) => void; onRoleUpdate?: (newRole: Role) => void; zIndex?: number }> = ({ user, onClose, onStatusUpdate, onRoleUpdate, zIndex = 120 }) => {
+const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpdate: (s: UserStatus) => void; onRoleUpdate?: (newRole: Role) => void; onPermissionToggle?: (permission: string) => void; zIndex?: number }> = ({ user, onClose, onStatusUpdate, onRoleUpdate, onPermissionToggle, zIndex = 120 }) => {
   const { settings } = useContext(AppContext);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
@@ -337,44 +337,63 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-400 transition-colors md:hidden flex-shrink-0"><X size={20} /></button>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:gap-6 mb-8">
-            <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">CNPJ</p>
-              <p className="font-bold text-gray-800">{user.cnpj}</p>
+          {/* Dados do usuário */}
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <Building2 size={16} className="text-gray-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">CNPJ</p>
+                <p className="text-sm font-bold text-gray-800 truncate">{user.cnpj || '—'}</p>
+              </div>
             </div>
-            <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Responsável Comercial</p>
-              <p className="font-bold text-gray-800">{user.responsibleName}</p>
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <UserIcon size={16} className="text-gray-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Responsável</p>
+                <p className="text-sm font-bold text-gray-800 truncate">{user.responsibleName || '—'}</p>
+              </div>
             </div>
-            <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dados de Contato</p>
-              <p className="font-bold text-gray-800 break-all">{user.email}</p>
-              <p className="text-sm text-gray-500 font-medium">{user.phone}</p>
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <Mail size={16} className="text-gray-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">E-mail</p>
+                <p className="text-sm font-bold text-gray-800 truncate">{user.email}</p>
+              </div>
             </div>
+            {user.phone && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <Phone size={16} className="text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Telefone</p>
+                  <p className="text-sm font-bold text-gray-800">{user.phone}</p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="pt-6 border-t border-gray-100 flex flex-col gap-3">
-            <div className="flex flex-wrap gap-3">
-              {user.status === UserStatus.PENDING ? (
-                <>
-                  <button onClick={() => onStatusUpdate(UserStatus.APPROVED)} className="flex-1 py-4 bg-green-600 text-white rounded-2xl font-black shadow-lg shadow-green-100 hover:bg-green-700 transition-all flex items-center justify-center gap-2">
-                    <ShieldCheck size={18} /> Aprovar
-                  </button>
-                  <button onClick={() => onStatusUpdate(UserStatus.REJECTED)} className="flex-1 py-4 bg-red-50 text-red-600 rounded-2xl font-black border border-red-100 hover:bg-red-100 transition-all flex items-center justify-center gap-2">
-                    <X size={18} /> Rejeitar
-                  </button>
-                </>
-              ) : user.status === UserStatus.APPROVED ? (
-                <button onClick={() => onStatusUpdate(UserStatus.INACTIVE)} className="w-full py-4 bg-orange-50 text-[#fc5200] rounded-2xl font-black border border-orange-100 hover:bg-[#fc5200] hover:text-white transition-all flex items-center justify-center gap-2">
-                  <Ban size={18} /> Revogar Acesso
-                </button>
-              ) : (
-                <button onClick={() => onStatusUpdate(UserStatus.APPROVED)} className="w-full py-4 text-white rounded-2xl font-black shadow-lg transition-all flex items-center justify-center gap-2" style={{ backgroundColor: settings.primaryColor }}>
-                  <Power size={18} /> Reativar Acesso
-                </button>
-              )}
-            </div>
 
-            {/* Botão de alterar cargo/papel */}
+          {/* Ações */}
+          <div className="pt-5 border-t border-gray-100 flex flex-col gap-2.5">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Ações</p>
+
+            {user.status === UserStatus.PENDING ? (
+              <div className="flex gap-2.5">
+                <button onClick={() => onStatusUpdate(UserStatus.APPROVED)} className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-xs font-black hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+                  <ShieldCheck size={15} /> Aprovar
+                </button>
+                <button onClick={() => onStatusUpdate(UserStatus.REJECTED)} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl text-xs font-black border border-gray-200 hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
+                  <X size={15} /> Rejeitar
+                </button>
+              </div>
+            ) : user.status === UserStatus.APPROVED ? (
+              <button onClick={() => onStatusUpdate(UserStatus.INACTIVE)} className="w-full py-3 bg-gray-100 text-red-500 rounded-xl text-xs font-black border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-all flex items-center justify-center gap-2">
+                <Ban size={15} /> Revogar Acesso
+              </button>
+            ) : (
+              <button onClick={() => onStatusUpdate(UserStatus.APPROVED)} className="w-full py-3 bg-gray-900 text-white rounded-xl text-xs font-black hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+                <Power size={15} /> Reativar Acesso
+              </button>
+            )}
+
             {onRoleUpdate && user.role !== Role.ADMIN && (
               <button
                 onClick={() => {
@@ -384,46 +403,61 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
                     onRoleUpdate(newRole);
                   }
                 }}
-                className={`w-full py-4 rounded-2xl font-black border transition-all flex items-center justify-center gap-2 ${user.role === Role.RETAILER
-                  ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-600 hover:text-white hover:border-purple-600'
-                  : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600'
-                  }`}
+                className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl text-xs font-black border border-gray-200 hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
               >
-                <ArrowRight size={18} />
+                <ArrowRight size={15} />
                 {user.role === Role.RETAILER ? 'Promover a Revendedor' : 'Converter em Lojista'}
+              </button>
+            )}
+
+            {onPermissionToggle && user.role !== Role.ADMIN && (
+              <button
+                onClick={() => onPermissionToggle('admin_panel')}
+                className={`w-full py-3 px-4 rounded-xl text-xs font-black border transition-all flex items-center gap-2 ${
+                  user.permissions?.includes('admin_panel')
+                    ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
+                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                }`}
+              >
+                <ShieldCheck size={15} />
+                Acesso ao Painel Admin
+                <span className={`ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                  user.permissions?.includes('admin_panel')
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 text-gray-400'
+                }`}>
+                  {user.permissions?.includes('admin_panel') ? 'Ativo' : 'Inativo'}
+                </span>
               </button>
             )}
 
             {/* Vinculation: Link RETAILER to RESELLER */}
             {user.role === Role.RETAILER && (
-              <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
-                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3">Vínculo com Revendedor</p>
+              <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2.5">Vínculo com Revendedor</p>
                 {linkedReseller ? (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-indigo-800">{linkedReseller.reseller.storeName}</p>
-                      <p className="text-[10px] text-indigo-500 font-medium">Vinculado como: {linkedReseller.client.tradeName || linkedReseller.client.companyName}</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-gray-800 truncate">{linkedReseller.reseller.storeName}</p>
+                      <p className="text-[9px] text-gray-500 font-medium truncate">Vinculado como: {linkedReseller.client.tradeName || linkedReseller.client.companyName}</p>
                     </div>
                     <button onClick={async () => {
                       if (!confirm('Remover vínculo deste lojista com o revendedor?')) return;
-                      // Remove linkedUserId from the client
                       const updated = { ...linkedReseller.client, linkedUserId: undefined };
                       await db.saveResellerClient(updated as any);
                       setLinkedReseller(null);
-                    }} className="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase hover:bg-red-100 transition-all">Desvincular</button>
+                    }} className="px-3 py-1.5 bg-white text-red-500 rounded-lg text-[9px] font-black uppercase tracking-widest border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-all flex-shrink-0">Desvincular</button>
                   </div>
                 ) : (
                   <div className="flex gap-2">
                     <select value={selectedResellerId} onChange={e => setSelectedResellerId(e.target.value)}
-                      className="flex-1 px-3 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm font-bold text-gray-700 outline-none">
+                      className="flex-1 px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none focus:border-gray-400">
                       <option value="">Selecionar revendedor...</option>
                       {allUsers.map(r => <option key={r.id} value={r.id}>{r.storeName}</option>)}
                     </select>
                     <button disabled={!selectedResellerId} onClick={async () => {
-                      // Check if this user is already linked
                       const existing = allClients.find(c => c.linkedUserId === user.id);
                       if (existing) { alert('Este lojista j\u00e1 est\u00e1 vinculado a outro revendedor.'); return; }
-                      // Create client in reseller portfolio
                       const newClient: ResellerClient = {
                         id: crypto.randomUUID(), resellerId: selectedResellerId, linkedUserId: user.id,
                         companyName: user.storeName, tradeName: user.storeName, cnpj: user.cnpj,
@@ -434,8 +468,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
                       const reseller = allUsers.find(u => u.id === selectedResellerId);
                       if (reseller) setLinkedReseller({ reseller, client: newClient });
                       setSelectedResellerId('');
-                    }} className="px-4 py-2.5 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50"
-                      style={{ backgroundColor: settings.primaryColor }}>Vincular</button>
+                    }} className="px-4 py-2.5 bg-gray-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all disabled:opacity-50 flex-shrink-0">Vincular</button>
                   </div>
                 )}
               </div>
@@ -2122,6 +2155,17 @@ export const AdminUsers: React.FC = () => {
     if (selectedUser?.id === u.id) setSelectedUser(updated);
   };
 
+  const handlePermissionToggle = async (u: User, permission: string) => {
+    const currentPerms = u.permissions || [];
+    const newPerms = currentPerms.includes(permission)
+      ? currentPerms.filter(p => p !== permission)
+      : [...currentPerms, permission];
+    const updated = { ...u, permissions: newPerms };
+    await db.saveUser(updated);
+    load();
+    if (selectedUser?.id === u.id) setSelectedUser(updated);
+  };
+
   const handleCreateReseller = async () => {
     if (!resellerForm.storeName || !resellerForm.email || !resellerForm.password) return;
     setIsCreating(true);
@@ -2294,114 +2338,59 @@ export const AdminUsers: React.FC = () => {
       {/* Grid de Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredUsers.map(u => (
-          <div key={u.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all flex flex-col group overflow-hidden">
-            {/* Header do Card */}
-            <div className="h-2 bg-gray-100 group-hover:h-3 transition-all" style={{ backgroundColor: `${settings.primaryColor}10` }}></div>
-            <div className="p-8 flex-1">
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gray-900 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-gray-200">
-                  {u.storeName.charAt(0)}
-                </div>
-                <div className="flex flex-col items-end gap-1.5">
-                  <StatusBadge status={u.status} />
-                  <RoleBadge role={u.role} />
-                </div>
+          <div key={u.id} onClick={() => setSelectedUser(u)} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-gray-200 transition-all cursor-pointer group overflow-hidden">
+            {/* Header */}
+            <div className="p-5 pb-4 flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-gray-900 text-white flex items-center justify-center text-lg font-black flex-shrink-0">
+                {u.storeName.charAt(0)}
               </div>
-
-              <h3 className="text-xl font-black text-gray-900 group-hover:text-primary transition-colors leading-tight mb-1">{u.storeName}</h3>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">CNPJ: {u.cnpj}</p>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                    <UserCircle size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-0.5">Responsável</p>
-                    <p className="text-xs font-bold text-gray-700">{u.responsibleName}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                    <Mail size={16} />
-                  </div>
-                  <div className="truncate">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-0.5">E-mail</p>
-                    <p className="text-xs font-bold text-gray-700 truncate">{u.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                    <Phone size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-0.5">Contato</p>
-                    <p className="text-xs font-bold text-gray-700">{u.phone}</p>
-                  </div>
-                </div>
-
-                {/* Mostrar permissões para revendedores */}
-                {u.role === Role.RESELLER && u.permissions && u.permissions.length > 0 && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-400">
-                      <ShieldCheck size={16} />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Permissões</p>
-                      <div className="flex flex-wrap gap-1">
-                        {u.permissions.includes('catalog') && (
-                          <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md border border-blue-100">Catálogo</span>
-                        )}
-                        {u.permissions.includes('admin_panel') && (
-                          <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md border border-purple-100">Painel Admin</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-black text-gray-900 group-hover:text-primary transition-colors truncate">{u.storeName}</h3>
+                <p className="text-[10px] text-gray-400 font-bold truncate">{u.cnpj || 'Sem CNPJ'}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <StatusBadge status={u.status} />
+                <RoleBadge role={u.role} />
               </div>
             </div>
 
-            {/* Ações do Card */}
-            <div className="p-4 bg-gray-50/50 border-t border-gray-50 flex gap-2">
-              <button
-                onClick={() => setSelectedUser(u)}
-                className="flex-1 py-3.5 bg-white border border-gray-200 text-gray-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all shadow-sm flex items-center justify-center gap-2"
-              >
-                <Eye size={14} /> Perfil Completo
-              </button>
-              {u.status === UserStatus.PENDING && (
-                <button
-                  onClick={() => handleStatusUpdate(u, UserStatus.APPROVED)}
-                  className="w-12 h-12 bg-green-600 text-white rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-lg shadow-green-100"
-                  title="Aprovar"
-                >
-                  <Check size={20} />
-                </button>
+            {/* Info */}
+            <div className="px-5 pb-4 space-y-1.5">
+              <div className="flex items-center gap-2 text-gray-500">
+                <UserCircle size={13} className="flex-shrink-0" />
+                <span className="text-xs font-medium truncate">{u.responsibleName || '—'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500">
+                <Mail size={13} className="flex-shrink-0" />
+                <span className="text-xs font-medium truncate">{u.email}</span>
+              </div>
+              {u.phone && (
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Phone size={13} className="flex-shrink-0" />
+                  <span className="text-xs font-medium">{u.phone}</span>
+                </div>
               )}
-              {u.role === Role.RETAILER && (
-                <button
-                  onClick={() => {
-                    if (confirm(`Deseja promover "${u.storeName}" a REVENDEDOR?`)) {
-                      handleRoleUpdate(u, Role.RESELLER);
-                    }
-                  }}
-                  className="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center hover:bg-purple-600 hover:text-white hover:scale-105 transition-all shadow-sm"
-                  title="Promover a Revendedor"
-                >
-                  <ArrowRight size={20} />
-                </button>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
+              {u.permissions?.includes('admin_panel') && (
+                <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-gray-900 text-white rounded-md">Admin</span>
               )}
+              {u.permissions?.includes('catalog') && (
+                <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-gray-200 text-gray-600 rounded-md">Catálogo</span>
+              )}
+              <div className="flex-1" />
               {u.phone && (
                 <a
                   href={`https://wa.me/${u.phone.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener"
-                  className="w-12 h-12 bg-[#25D366] text-white rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-lg shadow-green-100"
+                  onClick={e => e.stopPropagation()}
+                  className="w-8 h-8 bg-[#25D366] text-white rounded-lg flex items-center justify-center hover:scale-105 transition-all"
+                  title="WhatsApp"
                 >
-                  <MessageCircle size={20} />
+                  <MessageCircle size={14} />
                 </a>
               )}
             </div>
@@ -2423,6 +2412,7 @@ export const AdminUsers: React.FC = () => {
           onClose={() => setSelectedUser(null)}
           onStatusUpdate={(s) => handleStatusUpdate(selectedUser, s)}
           onRoleUpdate={(newRole) => handleRoleUpdate(selectedUser, newRole)}
+          onPermissionToggle={(perm) => handlePermissionToggle(selectedUser, perm)}
         />
       )}
 
