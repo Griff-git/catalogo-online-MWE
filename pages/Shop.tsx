@@ -363,11 +363,19 @@ export const Catalog: React.FC = () => {
         <div className="relative w-full">
           <Search className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={18} />
           <input
-            className="w-full pl-11 md:pl-16 pr-4 md:pr-8 py-3.5 md:py-5 border-none rounded-xl md:rounded-[1.75rem] bg-slate-50 outline-none focus:ring-4 focus:ring-primary/10 text-sm md:text-base font-semibold transition-all shadow-inner placeholder:text-gray-300 overflow-hidden"
+            className="w-full pl-11 md:pl-16 pr-10 md:pr-14 py-3.5 md:py-5 border-none rounded-xl md:rounded-[1.75rem] bg-slate-50 outline-none focus:ring-4 focus:ring-primary/10 text-sm md:text-base font-semibold transition-all shadow-inner placeholder:text-gray-300 overflow-hidden"
             placeholder="Pesquisar peças..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* Mobile filter toggle */}
