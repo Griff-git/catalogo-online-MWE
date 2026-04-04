@@ -186,35 +186,46 @@ const OrderDetailsModal: React.FC<{
             </div>
           )}
 
-          <div className="border border-gray-100 rounded-[2rem] overflow-hidden shadow-sm overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px]">
-                <tr>
-                  <th className="px-4 py-3 md:px-6 md:py-4 text-left tracking-widest min-w-[200px]">Produto</th>
-                  <th className="px-4 py-3 md:px-6 md:py-4 text-center tracking-widest whitespace-nowrap">Qtd</th>
-                  <th className="px-4 py-3 md:px-6 md:py-4 text-right tracking-widest min-w-[120px]">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {order.items.map((i, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-4 py-3 md:px-6 md:py-4">
-                      <button onClick={() => handleProductClick(i.productId)} className="font-bold text-gray-900 hover:underline flex items-center gap-2 text-left group-hover:translate-x-1 transition-transform">
-                        <span className="line-clamp-2">{i.productName}</span> <Info size={14} className="text-gray-300 flex-shrink-0" />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 md:px-6 md:py-4 text-center font-bold text-gray-500">{i.quantity}</td>
-                    <td className="px-4 py-3 md:px-6 md:py-4 text-right font-black text-gray-900 whitespace-nowrap">R$ {formatPrice(i.price * i.quantity)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-gray-50/80 border-t-2 border-gray-100">
-                <tr>
-                  <td colSpan={2} className="px-4 py-4 md:px-6 md:py-6 text-right font-black text-gray-400 uppercase text-xs tracking-widest">Total</td>
-                  <td className="px-4 py-4 md:px-6 md:py-6 text-right text-lg md:text-2xl font-black whitespace-nowrap" style={{ color: settings.primaryColor }}>R$ {formatPrice(order.total)}</td>
-                </tr>
-              </tfoot>
-            </table>
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Itens do Pedido</p>
+            <div className="space-y-3">
+              {order.items.map((i: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl group">
+                  {/* Thumbnail */}
+                  <div className="w-14 h-14 rounded-xl bg-white border border-gray-100 overflow-hidden flex-shrink-0">
+                    <img
+                      src={i.image || 'https://placehold.co/100x100/f1f5f9/94a3b8?text=...'}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button onClick={() => handleProductClick(i.productId)} className="text-sm font-bold text-gray-900 hover:underline text-left flex items-center gap-1.5 group-hover:translate-x-0.5 transition-transform">
+                      <span className="truncate">{i.name || i.productName}</span>
+                      <Info size={12} className="text-gray-300 flex-shrink-0" />
+                    </button>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                      {i.internalCode && (
+                        <p className="text-[10px] text-gray-400 font-medium">Cód: <span className="font-bold text-gray-600">{i.internalCode}</span></p>
+                      )}
+                      <p className="text-[10px] text-gray-400 font-medium">Qtd: <span className="font-bold text-gray-600">{i.quantity}</span></p>
+                    </div>
+                    {i.application && (
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5 truncate">Aplicação: <span className="text-gray-500">{i.application}</span></p>
+                    )}
+                  </div>
+                  <div className="text-right ml-4 shrink-0">
+                    <p className="text-xs font-bold text-gray-900">R$ {formatPrice((i.price || 0) * (i.quantity || 1))}</p>
+                    <p className="text-[10px] text-gray-400">R$ {formatPrice(i.price || 0)} /un</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Total */}
+            <div className="mt-4 flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+              <p className="font-black text-gray-400 uppercase text-xs tracking-widest">Total</p>
+              <p className="text-lg md:text-2xl font-black" style={{ color: settings.primaryColor }}>R$ {formatPrice(order.total)}</p>
+            </div>
           </div>
 
           <div>
@@ -1880,50 +1891,183 @@ export const AdminOrders: React.FC = () => {
     return matchesFilter && matchesSearch;
   });
 
-  const generatePDF = (order: Order) => {
+  const generatePDF = async (order: Order) => {
     try {
       const doc = new jsPDF();
-      const rgb = hexToRgb(settings.primaryColor);
-      doc.setFontSize(22); doc.setTextColor(rgb[0], rgb[1], rgb[2]); doc.text(settings.companyName, 15, 20);
+      const pageW = doc.internal.pageSize.getWidth();
+      const companyName = settings.companyName || 'MWE';
 
-      // Info do pedido
-      let infoY = 30;
+      // ====== HEADER COM LOGO ======
+      let headerH = 38;
+      doc.setFillColor(30, 41, 59);
+      doc.rect(0, 0, pageW, headerH, 'F');
+
+      const logoUrl = settings.logoUrl;
+      if (logoUrl) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = () => reject();
+            img.src = logoUrl;
+          });
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL('image/png');
+          const ratio = img.naturalWidth / img.naturalHeight;
+          const logoH = 16;
+          const logoW = logoH * ratio;
+          doc.addImage(dataUrl, 'PNG', 14, (headerH - logoH) / 2, logoW, logoH);
+        } catch {
+          doc.setFontSize(18);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(255, 255, 255);
+          doc.text(companyName, 14, 24);
+        }
+      } else {
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text(companyName, 14, 24);
+      }
+
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(100);
-      doc.text(`Loja/Revendedor: ${order.userStoreName}`, 15, infoY);
+      doc.setTextColor(200, 200, 200);
+      doc.text('COMPROVANTE DE PEDIDO', pageW - 14, 16, { align: 'right' });
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`#${order.id.slice(0, 8).toUpperCase()}`, pageW - 14, 26, { align: 'right' });
+
+      // ====== INFORMAÇÕES DO PEDIDO ======
+      let y = headerH + 12;
+      const infoBoxH = order.clientName ? 42 : 30;
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, y - 4, pageW - 28, infoBoxH, 3, 3, 'F');
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(150);
+      doc.text('DATA', 20, y + 2);
+      doc.text('STATUS', 65, y + 2);
+      doc.text('LOJISTA / REVENDEDOR', 115, y + 2);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text(new Date(order.date).toLocaleDateString('pt-BR'), 20, y + 9);
+      doc.text(statusLabels[order.status] || '', 65, y + 9);
+      doc.text(order.userStoreName || '-', 115, y + 9);
+
       if (order.clientName) {
-        infoY += 6;
-        doc.text(`Cliente Final: ${order.clientName}`, 15, infoY);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(150);
+        doc.text('CLIENTE FINAL', 20, y + 26);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text(order.clientName, 20, y + 33);
       }
+
+      y += infoBoxH + 12;
+
+      // ====== TABELA DE ITENS ======
+      const tableData = order.items.map((item: any) => [
+        item.internalCode || '-',
+        item.name || item.productName || '-',
+        item.application || '-',
+        String(item.quantity),
+        `R$ ${formatPrice(item.price || 0)}`,
+        `R$ ${formatPrice((item.price || 0) * (item.quantity || 1))}`
+      ]);
 
       autoTable(doc, {
-        startY: infoY + 8,
-        head: [['Item', 'Qtd', 'Total']],
-        body: order.items.map(i => [i.productName, i.quantity, `R$ ${formatPrice(i.price * i.quantity)}`]),
-        theme: 'grid',
-        headStyles: { fillColor: rgb as any }
+        startY: y,
+        head: [['CÓDIGO', 'PRODUTO', 'APLICAÇÃO', 'QTD', 'UNIT.', 'SUBTOTAL']],
+        body: tableData,
+        theme: 'plain',
+        headStyles: {
+          fillColor: [30, 41, 59],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 7,
+          cellPadding: 5,
+          halign: 'left'
+        },
+        bodyStyles: {
+          fontSize: 8,
+          cellPadding: 5,
+          textColor: [50, 50, 50],
+          lineColor: [230, 230, 230],
+          lineWidth: 0.3
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 24, fontStyle: 'bold' },
+          1: { cellWidth: 48 },
+          2: { cellWidth: 44 },
+          3: { halign: 'center', cellWidth: 16 },
+          4: { halign: 'right', cellWidth: 26 },
+          5: { halign: 'right', cellWidth: 26, fontStyle: 'bold' }
+        },
+        margin: { left: 14, right: 14 }
       });
 
-      const pdfFinalY = (doc as any).lastAutoTable.finalY + 8;
+      // ====== TOTAL DESTACADO ======
+      const finalY = (doc as any).lastAutoTable.finalY + 8;
+      const totalBoxW = 70;
+      const totalBoxX = pageW - 14 - totalBoxW;
+
+      doc.setFillColor(30, 41, 59);
+      doc.roundedRect(totalBoxX, finalY, totalBoxW, 18, 3, 3, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(180, 180, 180);
+      doc.text('TOTAL GERAL', totalBoxX + 6, finalY + 7);
+      doc.setFontSize(13);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`R$ ${formatPrice(order.total)}`, totalBoxX + totalBoxW - 6, finalY + 13, { align: 'right' });
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(120);
+      doc.text(`${order.items.length} ${order.items.length === 1 ? 'item' : 'itens'} no pedido`, 14, finalY + 12);
+
       if (order.paymentMethod) {
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(80);
-        doc.text(`Condição de Pagamento: ${order.paymentMethod}`, 15, pdfFinalY);
+        doc.text(`Condição de Pagamento: ${order.paymentMethod}`, 14, finalY + 20);
       }
 
-      let adminObsY = pdfFinalY + (order.paymentMethod ? 8 : 0);
+      let obsY = finalY + (order.paymentMethod ? 28 : 20);
       if (order.observations) {
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(80);
-        doc.text('Observações:', 15, adminObsY);
+        doc.text('Observações:', 14, obsY);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100);
-        const obsLines = doc.splitTextToSize(order.observations, 180);
-        doc.text(obsLines, 15, adminObsY + 6);
+        const obsLines = doc.splitTextToSize(order.observations, pageW - 28);
+        doc.text(obsLines, 14, obsY + 6);
       }
+
+      // ====== RODAPÉ ======
+      const footerY = doc.internal.pageSize.getHeight() - 12;
+      doc.setDrawColor(220);
+      doc.line(14, footerY - 6, pageW - 14, footerY - 6);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(160);
+      doc.text(settings.footerText || `${companyName} - Catálogo B2B`, 14, footerY);
+      doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, pageW - 14, footerY, { align: 'right' });
 
       doc.save(`Pedido_${order.id.slice(0, 8)}.pdf`);
     } catch (e) { alert('Erro ao gerar PDF.'); }
