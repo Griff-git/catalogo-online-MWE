@@ -13,6 +13,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -142,10 +143,14 @@ export const Catalog: React.FC = () => {
     }
     dragRef.current = null;
   };
-  const { addToCart, settings } = useContext(AppContext);
+  const { addToCart, settings, user } = useContext(AppContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const itemsPerPage = 25;
+
+  // Export spreadsheet state (RESELLER only)
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportGroups, setExportGroups] = useState<string[]>([]);
 
   // Funnel Filters State
   const [selectedGroup, setSelectedGroup] = useState('');
@@ -319,6 +324,42 @@ export const Catalog: React.FC = () => {
   )).filter(Boolean).sort();
 
 
+  const toggleExportGroup = (group: string) => {
+    setExportGroups(prev => prev.includes(group) ? prev.filter(g => g !== group) : [...prev, group]);
+  };
+
+  const exportProductsToExcel = () => {
+    if (exportGroups.length === 0) return;
+    const exportData = products
+      .filter(p => exportGroups.includes(p.group))
+      .sort((a, b) => a.group.localeCompare(b.group) || a.internalCode.localeCompare(b.internalCode))
+      .map(p => ({
+        'Código': p.internalCode,
+        'Nome': p.name,
+        'Aplicação': p.application,
+        'Preço': p.price
+      }));
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    // Formatar coluna de preço como moeda
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    for (let row = range.s.r + 1; row <= range.e.r; row++) {
+      const cell = worksheet[XLSX.utils.encode_cell({ r: row, c: 3 })];
+      if (cell) cell.z = '#,##0.00';
+    }
+    // Ajustar largura das colunas
+    worksheet['!cols'] = [
+      { wch: 15 },  // Código
+      { wch: 45 },  // Nome
+      { wch: 50 },  // Aplicação
+      { wch: 12 },  // Preço
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Produtos');
+    XLSX.writeFile(workbook, `catalogo_produtos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+    setShowExportModal(false);
+    setExportGroups([]);
+  };
+
   const handleAddToCart = () => {
     if (selectedProduct) {
       addToCart(selectedProduct, quantity);
@@ -482,9 +523,19 @@ export const Catalog: React.FC = () => {
 
       {/* Top Bar: Results count, Sorting, and Top Pagination */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
-        <p className="text-sm font-bold text-gray-500">
-          Exibindo <span className="text-gray-900 font-black">{filtered.length}</span> {filtered.length === 1 ? 'produto' : 'produtos'}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm font-bold text-gray-500">
+            Exibindo <span className="text-gray-900 font-black">{filtered.length}</span> {filtered.length === 1 ? 'produto' : 'produtos'}
+          </p>
+          {user?.role === Role.RESELLER && (
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 uppercase tracking-wider"
+            >
+              <Download size={14} /> Baixar Planilha
+            </button>
+          )}
+        </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
           {/* Ordenação */}
@@ -566,6 +617,75 @@ export const Catalog: React.FC = () => {
           <p className="text-gray-400">Tente ajustar seus filtros de busca.</p>
         </div>
       )}
+
+      {/* Export Modal (RESELLER) */}
+      {showExportModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) { setShowExportModal(false); setExportGroups([]); } }}>
+          <div className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-black text-gray-900">Baixar Planilha</h3>
+                  <p className="text-xs font-bold text-gray-400 mt-1">Selecione os grupos de produtos</p>
+                </div>
+                <button onClick={() => { setShowExportModal(false); setExportGroups([]); }} className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-900 transition-all">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <button
+                  onClick={() => setExportGroups(exportGroups.length === GROUPS.length ? [] : [...GROUPS])}
+                  className="text-xs font-black uppercase tracking-widest hover:text-primary transition-colors"
+                  style={{ color: exportGroups.length === GROUPS.length ? settings.primaryColor : '#9ca3af' }}
+                >
+                  {exportGroups.length === GROUPS.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                {GROUPS.map(group => {
+                  const count = products.filter(p => p.group === group).length;
+                  const isSelected = exportGroups.includes(group);
+                  return (
+                    <label
+                      key={group}
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border-2 ${isSelected ? 'border-green-500 bg-green-50' : 'border-transparent bg-slate-50 hover:bg-slate-100'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleExportGroup(group)}
+                        className="w-5 h-5 rounded-lg border-2 border-gray-300 text-green-600 focus:ring-green-500 accent-green-600"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-800">{group}</p>
+                        <p className="text-[10px] font-bold text-gray-400">{count} {count === 1 ? 'produto' : 'produtos'}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() => { setShowExportModal(false); setExportGroups([]); }}
+                  className="flex-1 py-3.5 bg-gray-100 text-gray-600 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={exportProductsToExcel}
+                  disabled={exportGroups.length === 0}
+                  className="flex-1 py-3.5 bg-green-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-green-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Download size={16} /> Baixar ({exportGroups.length})
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      , document.body)}
 
       {selectedProduct && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) closeProduct(); }}>
