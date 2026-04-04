@@ -1029,9 +1029,9 @@ export const Cart: React.FC = () => {
                     onChange={e => { setClientSearch(e.target.value); setShowClientDropdown(true); }}
                     onFocus={() => setShowClientDropdown(true)}
                     placeholder="Buscar cliente por nome, fantasia ou CNPJ..."
-                    className="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/30 rounded-2xl outline-none font-bold text-sm text-gray-700 transition-all placeholder:text-gray-300"
+                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/30 rounded-2xl outline-none font-bold text-sm text-gray-700 transition-all placeholder:text-gray-300"
                   />
-                  <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
                   {showClientDropdown && (
                     <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-56 overflow-y-auto">
                       {filteredClients.length > 0 ? filteredClients.map(c => (
