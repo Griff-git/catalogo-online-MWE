@@ -2,7 +2,7 @@
 import React, { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../App';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { UserStatus, Role } from '../types';
@@ -172,6 +172,18 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
   const { navigateWithTransition, TransitionOverlay } = usePageTransition();
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Dark mode
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
   useEffect(() => {
     const checkPending = async () => {
       if (user) {
@@ -215,6 +227,15 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
           </Link>
 
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className="p-2 md:p-3 text-gray-500 hover:bg-gray-100 rounded-2xl transition-all active:scale-95"
+              title={isDark ? 'Modo Claro' : 'Modo Escuro'}
+            >
+              {isDark ? <Sun size={22} className="md:w-6 md:h-6 text-amber-400" /> : <Moon size={22} className="md:w-6 md:h-6" />}
+            </button>
+
             {/* Ícone do Carrinho */}
             <Link
               to="/carrinho"
