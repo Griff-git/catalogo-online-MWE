@@ -1975,11 +1975,14 @@ export const MyClients: React.FC = () => {
 
             {/* Info */}
             <div className="px-8 pt-6 pb-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {selectedDetail.cnpj && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">CNPJ</p><p className="text-xs font-bold text-gray-900">{selectedDetail.cnpj}</p></div>}
                 {selectedDetail.phone && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Telefone</p><p className="text-xs font-bold text-gray-900">{selectedDetail.phone}</p></div>}
-                <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cadastro</p><p className="text-xs font-bold text-gray-900">{new Date(selectedDetail.createdAt).toLocaleDateString('pt-BR')}</p></div>
-                {selectedDetail.email && <div className="bg-gray-50 p-3 rounded-2xl col-span-2 md:col-span-4"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">E-mail</p><p className="text-xs font-bold text-gray-900 break-all">{selectedDetail.email}</p></div>}
+                {selectedDetail.email && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">E-mail</p><p className="text-xs font-bold text-gray-900 break-all">{selectedDetail.email}</p></div>}
+              </div>
+              <div className="bg-gray-50 p-3 rounded-2xl mt-3">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Data de Cadastro</p>
+                <p className="text-xs font-bold text-gray-900">{new Date(selectedDetail.createdAt).toLocaleDateString('pt-BR')}</p>
               </div>
               {selectedDetail.notes && (
                 <div className="mt-3 p-3 rounded-2xl border border-gray-100">
