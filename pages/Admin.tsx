@@ -59,7 +59,7 @@ const ProductInfoModal: React.FC<{ product: Product; onClose: () => void; primar
     return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
   }, [onClose]);
   return createPortal(
-    <div className="fixed inset-0 w-full h-full bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl max-w-2xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         <div className="px-6 py-5 md:px-10 md:py-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
           <div>
@@ -341,7 +341,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
   const Config = statusConfig[user.status];
 
   return createPortal(
-    <div className="fixed inset-0 w-full h-full bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl max-w-5xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col md:flex-row max-h-[90vh]">
         <div className="w-full md:w-1/2 p-6 md:p-10 border-b md:border-b-0 md:border-r border-gray-100 overflow-y-auto">
           <div className="flex justify-between items-start mb-6 md:mb-8">
@@ -1232,7 +1232,7 @@ export const AdminProducts: React.FC = () => {
 
     {/* Upload Overlay - fora do space-y */}
     {isUploading && createPortal(
-      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center space-y-6 animate-in zoom-in duration-300">
             {!uploadComplete ? (
               <>
@@ -1525,7 +1525,7 @@ export const AdminProducts: React.FC = () => {
       </div>
 
       {isModalOpen && createPortal(
-        <div className="fixed inset-0 w-full h-full bg-black/60 backdrop-blur-md flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-[110] p-4 animate-in fade-in duration-300">
           <form onSubmit={handleSave} className="bg-gray-100 rounded-[1rem] md:rounded-[1.25rem] shadow-2xl max-w-7xl w-full h-[90vh] flex overflow-hidden animate-in zoom-in duration-300 border border-gray-200">
 
             {/* LEFT SIDEBAR - VISUALS & KEY METRICS */}
@@ -2571,7 +2571,7 @@ export const AdminUsers: React.FC = () => {
 
       {/* Modal: Criar Revendedor */}
       {showCreateReseller && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-2xl rounded-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-8 md:p-10">
               <div className="flex items-center justify-between mb-8">
