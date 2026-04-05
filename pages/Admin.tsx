@@ -155,7 +155,8 @@ const OrderDetailsModal: React.FC<{
             <button
               disabled={!onViewRetailer}
               onClick={() => onViewRetailer && onViewRetailer(order.userId)}
-              className={`col-span-2 p-3 rounded-xl border border-gray-100 text-left group transition-all ${onViewRetailer ? 'hover:border-gray-300 cursor-pointer' : 'cursor-default'}`}
+              className={`col-span-2 p-3 rounded-xl border-2 text-left group transition-all ${onViewRetailer ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'}`}
+              style={{ borderColor: settings.primaryColor }}
             >
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Lojista / Revendedor</p>
               <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
