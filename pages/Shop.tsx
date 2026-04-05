@@ -621,7 +621,7 @@ export const Catalog: React.FC = () => {
       {/* Export Modal (RESELLER) */}
       {showExportModal && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) { setShowExportModal(false); setExportGroups([]); } }}>
-          <div className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-6 md:p-8">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -689,7 +689,7 @@ export const Catalog: React.FC = () => {
 
       {selectedProduct && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) closeProduct(); }}>
-          <div ref={sheetRef} className="bg-white w-full max-w-5xl rounded-t-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[92vh] md:max-h-[90vh] animate-in slide-in-from-bottom-4 md:zoom-in duration-300">
+          <div ref={sheetRef} className="bg-white w-full max-w-5xl rounded-t-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[92vh] md:max-h-[90vh] animate-in slide-in-from-bottom-4 md:zoom-in duration-300">
             {/* Drag handle mobile */}
             <div
               className="flex justify-center py-3 md:hidden cursor-grab active:cursor-grabbing touch-none"
@@ -1061,7 +1061,7 @@ export const Cart: React.FC = () => {
           {/* Quick Add Client Modal */}
           {showQuickAdd && createPortal(
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={e => { if (e.target === e.currentTarget) setShowQuickAdd(false); }}>
-              <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in duration-300">
+              <div className="bg-white w-full max-w-lg rounded-[1rem] md:rounded-[1.25rem] shadow-2xl p-8 animate-in zoom-in duration-300">
                 <h3 className="text-xl font-black text-gray-900 mb-6">Cadastro Rápido de Cliente</h3>
                 <div className="space-y-4">
                   <div>
@@ -1554,7 +1554,7 @@ export const MyOrders: React.FC = () => {
       {/* Modal Detalhes do Pedido */}
       {selectedOrder && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) setSelectedOrder(null); }}>
-          <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
+          <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
             {/* Header */}
             <div className="p-8 pb-0 flex items-center justify-between">
               <div>
@@ -1908,7 +1908,7 @@ export const MyClients: React.FC = () => {
       {/* Modal: Create/Edit Client */}
       {showForm && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}>
-          <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl p-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-xl rounded-[1rem] md:rounded-[1.25rem] shadow-2xl p-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-black text-gray-900 mb-6">{editingClient ? 'Editar Cliente' : 'Novo Cliente'}</h3>
             <div className="space-y-4">
               <div>
@@ -1958,7 +1958,7 @@ export const MyClients: React.FC = () => {
       {/* Modal: Client Details */}
       {selectedDetail && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md" onClick={e => { if (e.target === e.currentTarget) setSelectedDetail(null); }}>
-          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
             {/* Header */}
             <div className="p-8 pb-0 flex items-center justify-between">
               <div>

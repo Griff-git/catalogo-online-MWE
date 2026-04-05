@@ -57,7 +57,7 @@ export const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-md w-full bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-8">
           {settings.logoUrl ? (
             <img src={settings.logoUrl} className="h-12 mx-auto mb-4" alt="Logo" />
@@ -325,7 +325,7 @@ export const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="max-w-2xl w-full bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div className="max-w-2xl w-full bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
 
         <div className="p-10 pb-0">
           <div className="text-center mb-8">
@@ -609,7 +609,7 @@ export const ForgotPassword: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-md w-full bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-black shadow-lg" style={{ backgroundColor: settings.primaryColor }}>
             <KeyRound size={28} />
@@ -707,7 +707,7 @@ export const ResetPassword: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-md w-full bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-3xl font-black shadow-lg" style={{ backgroundColor: settings.primaryColor }}>
             <Lock size={28} />
