@@ -886,7 +886,7 @@ export const AdminProducts: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ identification: true });
   const toggleSection = (key: string) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: '' });
   const [currentPage, setCurrentPage] = useState(1);
@@ -1531,21 +1531,21 @@ export const AdminProducts: React.FC = () => {
           <form onSubmit={handleSave} className="bg-gray-100 rounded-[1rem] md:rounded-[1.25rem] shadow-2xl max-w-7xl w-full h-[90vh] flex overflow-hidden animate-in zoom-in duration-300 border border-gray-200">
 
             {/* LEFT SIDEBAR - VISUALS & KEY METRICS */}
-            <div className="w-1/3 min-w-[350px] bg-white p-8 flex flex-col border-r border-gray-200 overflow-hidden relative">
-              <div className="mb-6 flex justify-between items-start">
+            <div className="w-1/3 min-w-[350px] bg-white p-6 flex flex-col border-r border-gray-200 overflow-y-auto relative">
+              <div className="mb-4 flex justify-between items-start">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-gray-500">
+                  <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-gray-400">
                     {formData.id ? 'Editando Produto' : 'Novo Produto'}
                   </p>
-                  <h2 className="font-black text-gray-900 text-3xl leading-tight">
+                  <h2 className="font-black text-gray-900 text-xl leading-tight">
                     {formData.name || 'Sem Nome'}
                   </h2>
                 </div>
               </div>
 
               {/* IMAGES SECTION */}
-              <div className="mb-8">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block mb-3">Galeria de Imagens</label>
+              <div className="mb-4">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 block mb-2">Galeria de Imagens</label>
                 <div className="grid grid-cols-2 gap-3">
                   {(formData.images || []).map((img, idx) => (
                     <div key={idx} className="relative group aspect-square">
@@ -1572,64 +1572,65 @@ export const AdminProducts: React.FC = () => {
               </div>
 
               {/* KEY METRICS SECTION */}
-              <div className="space-y-5 bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Preço (R$)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">R$</span>
+              <div className="space-y-3 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Preço (R$)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">R$</span>
+                      <input
+                        required
+                        type="number"
+                        step="0.01"
+                        className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 focus:border-gray-400 rounded-xl outline-none font-black text-base text-gray-800 transition-all"
+                        value={formData.price || 0}
+                        onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Promo (Opcional)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-400 font-bold text-sm">R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 focus:border-gray-400 rounded-xl outline-none font-black text-base text-red-600 transition-all placeholder:text-gray-300"
+                        value={formData.promo_price || ''}
+                        onChange={e => setFormData({ ...formData, promo_price: parseFloat(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Estoque</label>
                     <input
                       required
                       type="number"
-                      step="0.01"
-                      className="w-full pl-10 pr-4 py-3.5 bg-white border-2 border-transparent focus:border-[#3483FA] rounded-2xl outline-none font-black text-xl text-gray-800 transition-all shadow-sm"
-                      value={formData.price || 0}
-                      onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                      className="w-full px-3 py-2.5 bg-white border border-gray-200 focus:border-gray-400 rounded-xl outline-none font-black text-base text-gray-800 transition-all"
+                      value={formData.stock || 0}
+                      onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) })}
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Preço Promocional (Opcional)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-red-400">R$</span>
+                  <div>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Texto Estoque</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="w-full pl-10 pr-4 py-3.5 bg-white border-2 border-transparent focus:border-red-500 rounded-2xl outline-none font-black text-xl text-red-600 transition-all shadow-sm placeholder:text-gray-300"
-                      value={formData.promo_price || ''}
-                      onChange={e => setFormData({ ...formData, promo_price: parseFloat(e.target.value) })}
+                      type="text"
+                      placeholder="Ex: 100+..."
+                      className="w-full px-3 py-2.5 bg-white border border-gray-200 focus:border-gray-400 rounded-xl outline-none font-bold text-sm text-gray-600 transition-all"
+                      value={formData.min_stock_display || ''}
+                      onChange={e => setFormData({ ...formData, min_stock_display: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Estoque Disponível</label>
-                  <input
-                    required
-                    type="number"
-                    className="w-full px-4 py-3.5 bg-white border-2 border-transparent focus:border-[#3483FA] rounded-2xl outline-none font-black text-xl text-gray-800 transition-all shadow-sm"
-                    value={formData.stock || 0}
-                    onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) })}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-1 block">Texto de Estoque (Substitui Qtd)</label>
-                  <input
-                    type="text"
-                    placeholder="Ex: +100, Disponível..."
-                    className="w-full px-4 py-3.5 bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none font-bold text-sm text-gray-600 transition-all shadow-sm"
-                    value={formData.min_stock_display || ''}
-                    onChange={e => setFormData({ ...formData, min_stock_display: e.target.value })}
-                  />
                 </div>
               </div>
 
-              <div className="flex-1"></div> {/* Spacer */}
+              <div className="flex-1"></div>
 
               {/* ACTIONS FOOTER */}
-              <div className="mt-8 pt-6 border-t border-gray-100 flex gap-3 sticky bottom-0 bg-white pb-2">
+              <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3 sticky bottom-0 bg-white pb-1">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors">Cancelar</button>
                 <button type="submit" className="flex-[2] py-3.5 text-white rounded-xl font-bold shadow-lg shadow-[#3483FA]/20 transition-all hover:scale-[1.02] active:scale-95" style={{ backgroundColor: settings.primaryColor }}>Salvar Alterações</button>
               </div>
@@ -1646,7 +1647,10 @@ export const AdminProducts: React.FC = () => {
                   <button type="button" onClick={() => toggleSection('identification')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Tag size={18} className="text-gray-400" />
-                      <h3 className="font-bold text-gray-800">Identificação</h3>
+                      <div className="text-left">
+                        <h3 className="font-bold text-gray-800">Identificação</h3>
+                        <p className="text-xs text-gray-400">Nome, código interno e códigos paralelos</p>
+                      </div>
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.identification ? 'rotate-180' : ''}`} />
                   </button>
@@ -1671,7 +1675,10 @@ export const AdminProducts: React.FC = () => {
                   <button type="button" onClick={() => toggleSection('classification')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Folder size={18} className="text-gray-400" />
-                      <h3 className="font-bold text-gray-800">Classificação</h3>
+                      <div className="text-left">
+                        <h3 className="font-bold text-gray-800">Classificação</h3>
+                        <p className="text-xs text-gray-400">Grupo, posição e aplicação do produto</p>
+                      </div>
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.classification ? 'rotate-180' : ''}`} />
                   </button>
@@ -1844,7 +1851,10 @@ export const AdminProducts: React.FC = () => {
                   <button type="button" onClick={() => toggleSection('details')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Package size={18} className="text-gray-400" />
-                      <h3 className="font-bold text-gray-800">Detalhes Adicionais</h3>
+                      <div className="text-left">
+                        <h3 className="font-bold text-gray-800">Detalhes Adicionais</h3>
+                        <p className="text-xs text-gray-400">Componentes do kit e informações extras</p>
+                      </div>
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.details ? 'rotate-180' : ''}`} />
                   </button>
