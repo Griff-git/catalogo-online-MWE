@@ -135,7 +135,7 @@ const OrderDetailsModal: React.FC<{
 
   return createPortal(
     <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl max-w-3xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-[1rem] md:rounded-[1.25rem] shadow-2xl max-w-3xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
           <div>
