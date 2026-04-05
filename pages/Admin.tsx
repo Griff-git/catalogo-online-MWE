@@ -139,7 +139,10 @@ const OrderDetailsModal: React.FC<{
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
           <div>
-            <h2 className="font-black text-lg" style={{ color: settings.primaryColor }}>Pedido #{order.id.slice(0, 8).toUpperCase()}</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="font-black text-lg" style={{ color: settings.primaryColor }}>Pedido #{order.id.slice(0, 8).toUpperCase()}</h2>
+              <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-gray-50 text-gray-600 border-gray-200">{statusLabels[order.status]}</span>
+            </div>
             <p className="text-xs text-gray-400 font-medium mt-0.5">{new Date(order.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"><X size={20} /></button>
@@ -164,21 +167,15 @@ const OrderDetailsModal: React.FC<{
               )}
             </button>
             <div className="p-3 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Status</p>
-              <p className="text-sm font-bold text-gray-900">{statusLabels[order.status]}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pagamento</p>
+              <p className="text-sm font-bold text-gray-900">{order.paymentMethod || 'Não informado'}</p>
             </div>
             <div className="p-3 rounded-xl border border-gray-100">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
               <p className="text-sm font-black text-gray-900">R$ {formatPrice(order.total)}</p>
             </div>
-            {order.paymentMethod && (
-              <div className="p-3 rounded-xl border border-gray-100 col-span-2">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pagamento</p>
-                <p className="text-sm font-bold text-gray-900">{order.paymentMethod}</p>
-              </div>
-            )}
             {order.observations && (
-              <div className="p-3 rounded-xl border border-gray-100 col-span-2">
+              <div className="p-3 rounded-xl border border-gray-100 col-span-2 md:col-span-4">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Observações</p>
                 <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap">{order.observations}</p>
               </div>
