@@ -69,7 +69,7 @@ const ProductInfoModal: React.FC<{ product: Product; onClose: () => void; primar
           <button onClick={onClose} className="p-2 md:p-3 hover:bg-gray-200 rounded-full text-gray-400 transition-colors"><X size={20} className="md:w-6 md:h-6" /></button>
         </div>
         <div className="p-6 md:p-10 space-y-6 overflow-y-auto">
-          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center bg-gray-50 p-4 md:p-6 rounded-[2rem] border border-gray-100">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center bg-gray-50 p-4 md:p-6 rounded-[1rem] border border-gray-100">
             <div className="w-full md:w-32 h-40 md:h-32 bg-white rounded-2xl shadow-sm overflow-hidden flex-shrink-0">
               <img src={product.images[0]} className="w-full h-full object-cover" alt={product.name} />
             </div>
@@ -346,7 +346,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
         <div className="w-full md:w-1/2 p-6 md:p-10 border-b md:border-b-0 md:border-r border-gray-100 overflow-y-auto">
           <div className="flex justify-between items-start mb-6 md:mb-8">
             <div className="flex items-center gap-4 md:gap-5">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 text-white rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center text-2xl md:text-3xl font-black flex-shrink-0">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 text-white rounded-[0.75rem] md:rounded-[1rem] flex items-center justify-center text-2xl md:text-3xl font-black flex-shrink-0">
                 {user.storeName.charAt(0)}
               </div>
               <div className="overflow-hidden">
@@ -531,7 +531,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
                 </div>
               ))
             ) : (
-              <div className="text-center py-20 bg-white/50 rounded-[2rem] border-2 border-dashed border-gray-100">
+              <div className="text-center py-20 bg-white/50 rounded-[1rem] border-2 border-dashed border-gray-100">
                 <Package className="mx-auto text-gray-200 mb-3" size={48} />
                 <p className="text-gray-400 font-black uppercase text-[10px] tracking-widest">Nenhum pedido</p>
               </div>
@@ -697,7 +697,7 @@ export const AdminDashboard: React.FC = () => {
 
       {/* KPIs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-8 rounded-[2.5rem] bg-gray-900 text-white shadow-2xl shadow-gray-200 flex flex-col justify-between group overflow-hidden relative">
+        <div className="p-8 rounded-[1.25rem] bg-gray-900 text-white shadow-2xl shadow-gray-200 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform z-0">
             <DollarSign size={120} />
           </div>
@@ -710,7 +710,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-8 rounded-[2.5rem] bg-white border border-gray-100 shadow-sm flex flex-col justify-between group overflow-hidden relative">
+        <div className="p-8 rounded-[1.25rem] bg-white border border-gray-100 shadow-sm flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 text-gray-50 group-hover:scale-110 transition-transform z-0">
             <Clock size={120} />
           </div>
@@ -723,7 +723,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-8 rounded-[2.5rem] bg-white border border-gray-100 shadow-sm flex flex-col justify-between group overflow-hidden relative">
+        <div className="p-8 rounded-[1.25rem] bg-white border border-gray-100 shadow-sm flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 text-gray-50 group-hover:scale-110 transition-transform z-0">
             <Users2 size={120} />
           </div>
@@ -736,7 +736,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className={`p-8 rounded-[2.5rem] shadow-sm flex flex-col justify-between group overflow-hidden relative border ${stats.itensBaixoEstoque > 0 ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100'}`}>
+        <div className={`p-8 rounded-[1.25rem] shadow-sm flex flex-col justify-between group overflow-hidden relative border ${stats.itensBaixoEstoque > 0 ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100'}`}>
           <div className="absolute -right-4 -top-4 text-gray-900/5 group-hover:scale-110 transition-transform z-0">
             <AlertTriangle size={120} />
           </div>
@@ -755,7 +755,7 @@ export const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Lado Esquerdo: Ações Pendentes */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+          <div className="bg-white p-8 rounded-[1.25rem] border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <h3 className="font-black text-gray-900 flex items-center gap-2"><ShieldAlert size={18} className="text-orange-500" /> Pendências</h3>
               <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">Ação Necessária</span>
@@ -790,7 +790,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+          <div className="bg-white p-8 rounded-[1.25rem] border border-gray-100 shadow-sm">
             <h3 className="font-black text-gray-900 mb-6 flex items-center gap-2"><PieChart size={18} className="text-primary" /> Fluxo de Status</h3>
             <div className="space-y-5">
               {(Object.keys(statusLabels) as OrderStatus[]).map(status => {
@@ -814,7 +814,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Lado Direito: Atividade Recente */}
-        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="lg:col-span-2 bg-white rounded-[1.25rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
           <div className="px-8 py-8 border-b border-gray-50 flex justify-between items-center">
             <div>
               <h3 className="font-black text-gray-900 flex items-center gap-2"><Clock size={18} className="text-gray-400" /> Atividade Recente</h3>
@@ -1363,7 +1363,7 @@ export const AdminProducts: React.FC = () => {
       </div>
 
       {/* Barra de Ações Revitalizada com Barra de Pesquisa */}
-      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-6">
+      <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100 flex flex-col gap-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <input type="file" ref={fileInputRef} onChange={handleImportExcel} accept=".xlsx, .xls" className="hidden" />
@@ -1416,7 +1416,7 @@ export const AdminProducts: React.FC = () => {
       </div>
 
       {/* Tabela Revitalizada */}
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+      <div className="bg-white rounded-[1.25rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <ErrorBoundary scope="lista de produtos">
             <table className="min-w-full divide-y divide-gray-50">
@@ -1640,7 +1640,7 @@ export const AdminProducts: React.FC = () => {
               <div className="max-w-3xl mx-auto space-y-8 pb-20">
 
                 {/* SECTION: IDENTIFICATION */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-[#3483FA]/10 text-[#3483FA] rounded-lg"><Tag size={20} /></div>
                     <h3 className="font-bold text-lg text-gray-800">Identificação</h3>
@@ -1662,7 +1662,7 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 {/* SECTION: CLASSIFICATION */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Folder size={20} /></div>
                     <h3 className="font-bold text-lg text-gray-800">Classificação</h3>
@@ -1690,7 +1690,7 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 {/* SECTION: COMPATIBILITY */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-green-100 text-green-600 rounded-lg"><Car size={20} /></div>
                     <div className="flex-1">
@@ -1829,7 +1829,7 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 {/* SECTION: DETAILS */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
+                <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><Package size={20} /></div>
                     <h3 className="font-bold text-lg text-gray-800">Detalhes Adicionais</h3>
@@ -2137,7 +2137,7 @@ export const AdminOrders: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-6">
+      <div className="bg-white p-6 rounded-[1rem] border border-gray-100 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -2169,7 +2169,7 @@ export const AdminOrders: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-[1.25rem] shadow-sm border border-gray-100 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-50">
           <thead className="bg-gray-50/50">
             <tr>
@@ -2432,7 +2432,7 @@ export const AdminUsers: React.FC = () => {
       </div>
 
       {/* Barra de Ferramentas */}
-      <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-6">
+      <div className="bg-white p-6 rounded-[1rem] border border-gray-100 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -2551,7 +2551,7 @@ export const AdminUsers: React.FC = () => {
         ))}
 
         {filteredUsers.length === 0 && (
-          <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100">
+          <div className="col-span-full py-20 text-center bg-white rounded-[1.25rem] border-2 border-dashed border-gray-100">
             <UserCircle size={60} className="mx-auto text-gray-100 mb-6" />
             <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Nenhum usuário encontrado</p>
             <button onClick={() => { setSearchQuery(''); setFilter('ALL'); setRoleFilter('ALL'); }} className="mt-4 text-xs font-black text-primary underline">Limpar filtros</button>
@@ -2812,7 +2812,7 @@ export const AdminSettings: React.FC = () => {
       <div className="animate-in fade-in duration-300">
 
         {settingsTab === 'visual' && (
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[1.25rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
               <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <Palette size={20} />
@@ -2861,7 +2861,7 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'institutional' && (
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[1.25rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
               <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <Globe size={20} />
@@ -2899,7 +2899,7 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'support' && (
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[1.25rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
               <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <MessageCircle size={20} />
@@ -2931,7 +2931,7 @@ export const AdminSettings: React.FC = () => {
         )}
 
         {settingsTab === 'social' && (
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[1.25rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-8 py-5 flex items-center gap-4 border-b border-gray-100">
               <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                 <Share2 size={20} />
@@ -2993,7 +2993,7 @@ export const AdminSettings: React.FC = () => {
         {settingsTab === 'payments' && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-gray-100 shadow-sm">
+            <div className="bg-white px-8 py-5 rounded-[1.25rem] border border-gray-100 shadow-sm">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 shadow-sm flex-shrink-0">
@@ -3042,7 +3042,7 @@ export const AdminSettings: React.FC = () => {
               const isExpanded = expandedPolicies[pIdx] === true; // contraído por padrão
 
               return (
-                <div key={pIdx} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                <div key={pIdx} className="bg-white rounded-[1.25rem] border border-gray-100 shadow-sm overflow-hidden">
                   {/* Header da faixa - clicável para expandir/contrair */}
                   <div
                     className="px-8 py-5 flex items-center justify-between cursor-pointer select-none"
@@ -3256,7 +3256,7 @@ export const AdminSettings: React.FC = () => {
                 current.push({ minValue: (lastMax as number) + 0.01, maxValue: Infinity, options: [{ label: 'À vista', days: [] }] });
                 setTemp({ ...temp, paymentPolicies: current });
               }}
-              className="w-full py-5 bg-white border-2 border-dashed border-gray-200 rounded-[2rem] text-xs font-black text-gray-400 uppercase tracking-widest hover:border-gray-400 hover:text-gray-600 transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-5 bg-white border-2 border-dashed border-gray-200 rounded-[1rem] text-xs font-black text-gray-400 uppercase tracking-widest hover:border-gray-400 hover:text-gray-600 transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               <Plus size={16} /> Adicionar Nova Faixa de Valor
             </button>

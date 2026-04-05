@@ -30,7 +30,7 @@ const ProductCard: React.FC<{ product: Product, onClick: () => void }> = ({ prod
   return (
     <div
       onClick={onClick}
-      className="group bg-white rounded-[2rem] border border-gray-100 p-4 cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 relative flex flex-col h-full overflow-hidden"
+      className="group bg-white rounded-[1rem] border border-gray-100 p-4 cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 relative flex flex-col h-full overflow-hidden"
     >
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
         {hasDiscount && (
@@ -385,7 +385,7 @@ export const Catalog: React.FC = () => {
     <div className="space-y-4 md:space-y-8 animate-in fade-in duration-500 pb-4 md:pb-10">
       {/* Promotional Banner */}
       {settings.promoBannerUrl && !bannerDismissed && (
-        <div className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-lg border border-gray-100 animate-in slide-in-from-top-4 duration-500">
+        <div className="relative rounded-2xl md:rounded-[1.25rem] overflow-hidden shadow-lg border border-gray-100 animate-in slide-in-from-top-4 duration-500">
           <img
             src={settings.promoBannerUrl}
             alt="Promoção"
@@ -400,7 +400,7 @@ export const Catalog: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col gap-4 md:gap-6">
+      <div className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[1.25rem] shadow-sm border border-gray-100 flex flex-col gap-4 md:gap-6">
         <div className="relative w-full">
           <Search className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={18} />
           <input
@@ -948,7 +948,7 @@ export const Cart: React.FC = () => {
           const discPrice = getItemDiscountedPrice(item);
           const itemTotal = (disc > 0 ? discPrice : item.price) * item.quantity;
           return (
-            <div key={item.id} className="bg-white p-4 md:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-3 md:gap-6 group hover:border-gray-200 transition-all">
+            <div key={item.id} className="bg-white p-4 md:p-6 rounded-[1rem] border border-gray-100 shadow-sm flex items-center gap-3 md:gap-6 group hover:border-gray-200 transition-all">
               <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl bg-slate-50 overflow-hidden flex-shrink-0" onContextMenu={e => e.preventDefault()}>
                 <img src={item.images[0] || 'https://placehold.co/400x400/f1f5f9/64748b?text=Imagem+Em+Breve'} className="w-full h-full object-cover select-none pointer-events-none" draggable={false} />
               </div>
@@ -1005,7 +1005,7 @@ export const Cart: React.FC = () => {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl sticky top-28">
+        <div className="bg-white p-8 rounded-[1.25rem] border border-gray-100 shadow-xl sticky top-28">
           <h2 className="text-xl font-black text-gray-900 mb-6">Resumo do Faturamento</h2>
 
           {/* Campo de nome do cliente para revendedores */}
@@ -1505,7 +1505,7 @@ export const MyOrders: React.FC = () => {
       <div className="space-y-4">
         {orders.length > 0 ? (
           orders.map(order => (
-            <div key={order.id} className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm hover:border-gray-300 transition-all flex flex-col md:flex-row gap-8 items-center">
+            <div key={order.id} className="bg-white rounded-[1.25rem] border border-gray-100 p-8 shadow-sm hover:border-gray-300 transition-all flex flex-col md:flex-row gap-8 items-center">
               <div className="flex-1 w-full">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="text-xs font-black text-gray-900 uppercase tracking-widest">#{order.id.slice(0, 8).toUpperCase()}</span>
@@ -1543,7 +1543,7 @@ export const MyOrders: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="py-20 text-center bg-white rounded-[3rem] border border-gray-100 border-dashed">
+          <div className="py-20 text-center bg-white rounded-[1.25rem] border border-gray-100 border-dashed">
             <ClipboardList size={64} className="mx-auto text-gray-100 mb-6" />
             <h3 className="text-xl font-black text-gray-400">Você ainda não realizou pedidos</h3>
             <button onClick={() => navigate('/catalogo')} className="mt-6 px-8 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Ir para o Catálogo</button>
@@ -1847,7 +1847,7 @@ export const MyClients: React.FC = () => {
           const active = isActive(client);
           const lastLogin = getLastLogin(client);
           return (
-            <div key={client.id} className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm hover:border-gray-300 transition-all">
+            <div key={client.id} className="bg-white rounded-[1rem] border border-gray-100 p-6 shadow-sm hover:border-gray-300 transition-all">
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
                 {/* Avatar + Name */}
                 <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -1896,7 +1896,7 @@ export const MyClients: React.FC = () => {
             </div>
           );
         }) : (
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 p-16 text-center">
+          <div className="bg-white rounded-[1.25rem] border border-gray-100 p-16 text-center">
             <UserIcon size={48} className="mx-auto text-gray-200 mb-4" />
             <p className="text-lg font-black text-gray-300 mb-1">Nenhum cliente cadastrado</p>
             <p className="text-sm text-gray-400 font-medium mb-6">Comece adicionando clientes à sua carteira.</p>
@@ -2033,9 +2033,9 @@ export const Profile: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in duration-500">
-      <div className="bg-white rounded-[3rem] border border-gray-100 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-[1.25rem] border border-gray-100 shadow-xl overflow-hidden">
         <div className="h-40 bg-slate-900 relative">
-          <div className="absolute -bottom-12 left-12 w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center text-4xl font-black text-slate-900 border-4 border-white">
+          <div className="absolute -bottom-12 left-12 w-24 h-24 bg-white rounded-[1rem] shadow-xl flex items-center justify-center text-4xl font-black text-slate-900 border-4 border-white">
             {user.storeName.charAt(0)}
           </div>
         </div>

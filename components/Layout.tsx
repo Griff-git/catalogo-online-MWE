@@ -271,7 +271,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
               </button>
 
               {isMenuOpen && (
-                <div className="absolute right-0 mt-4 w-72 bg-white rounded-[2rem] shadow-2xl border border-gray-100 py-4 z-[60] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                <div className="absolute right-0 mt-4 w-72 bg-white rounded-[1rem] shadow-2xl border border-gray-100 py-4 z-[60] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                   <div className="px-6 py-4 border-b border-gray-50 mb-2">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl" style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}>
