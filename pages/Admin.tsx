@@ -256,7 +256,7 @@ const OrderDetailsModal: React.FC<{
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Fechar</button>
-          <button onClick={onDownload} className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors"><Download size={16} /> Baixar PDF</button>
+          <button onClick={onDownload} className="flex items-center gap-2 px-5 py-2.5 text-white rounded-lg text-sm font-bold transition-colors hover:opacity-90" style={{ backgroundColor: settings.primaryColor }}><Download size={16} /> Baixar PDF</button>
         </div>
       </div>
       {viewingProduct && <ProductInfoModal product={viewingProduct} onClose={() => setViewingProduct(null)} primaryColor={settings.primaryColor} zIndex={zIndex + 100} />}
