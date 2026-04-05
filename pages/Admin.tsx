@@ -171,25 +171,19 @@ const OrderDetailsModal: React.FC<{
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
               <p className="text-sm font-black text-gray-900">R$ {formatPrice(order.total)}</p>
             </div>
+            {order.paymentMethod && (
+              <div className="p-3 rounded-xl border border-gray-100 col-span-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pagamento</p>
+                <p className="text-sm font-bold text-gray-900">{order.paymentMethod}</p>
+              </div>
+            )}
+            {order.observations && (
+              <div className="p-3 rounded-xl border border-gray-100 col-span-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Observações</p>
+                <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap">{order.observations}</p>
+              </div>
+            )}
           </div>
-
-          {/* Payment & Observations - inline */}
-          {(order.paymentMethod || order.observations) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {order.paymentMethod && (
-                <div className="p-3 rounded-xl border border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pagamento</p>
-                  <p className="text-sm font-bold text-gray-900">{order.paymentMethod}</p>
-                </div>
-              )}
-              {order.observations && (
-                <div className="p-3 rounded-xl border border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Observações</p>
-                  <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap">{order.observations}</p>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Items table */}
           <div className="border border-gray-100 rounded-xl overflow-hidden">
