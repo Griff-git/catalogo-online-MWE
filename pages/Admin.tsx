@@ -1638,7 +1638,7 @@ export const AdminProducts: React.FC = () => {
 
             {/* RIGHT MAIN CONTENT - ORGANIZED FIELDS */}
             <div className="flex-1 bg-gray-50/50 overflow-y-auto p-8 relative">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 p-2 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors z-10"><X size={24} /></button>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="sticky top-0 float-right p-2 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors z-10"><X size={24} /></button>
 
               <div className="max-w-3xl mx-auto space-y-8 pb-20">
 
