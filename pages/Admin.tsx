@@ -1646,7 +1646,7 @@ export const AdminProducts: React.FC = () => {
                 <div className="bg-white rounded-[1rem] shadow-sm border border-gray-100 overflow-hidden">
                   <button type="button" onClick={() => toggleSection('identification')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Tag size={18} className="text-gray-400" />
+                      <Tag size={18} style={{ color: settings.primaryColor }} />
                       <div className="text-left">
                         <h3 className="font-bold text-gray-800">Identificação</h3>
                         <p className="text-xs text-gray-400">Nome, código interno e códigos paralelos</p>
@@ -1654,7 +1654,8 @@ export const AdminProducts: React.FC = () => {
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.identification ? 'rotate-180' : ''}`} />
                   </button>
-                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 px-5 pb-5 ${expandedSections.identification ? '' : 'hidden'}`}>
+                  {expandedSections.identification && <div className="border-t border-gray-100 mx-5"></div>}
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 px-5 py-5 ${expandedSections.identification ? '' : 'hidden'}`}>
                     <div className="md:col-span-2 space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Nome Completo do Produto</label>
                       <input required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-bold text-gray-700 transition-all" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
@@ -1674,7 +1675,7 @@ export const AdminProducts: React.FC = () => {
                 <div className="bg-white rounded-[1rem] shadow-sm border border-gray-100 overflow-hidden">
                   <button type="button" onClick={() => toggleSection('classification')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Folder size={18} className="text-gray-400" />
+                      <Folder size={18} style={{ color: settings.primaryColor }} />
                       <div className="text-left">
                         <h3 className="font-bold text-gray-800">Classificação</h3>
                         <p className="text-xs text-gray-400">Grupo, posição e aplicação do produto</p>
@@ -1682,7 +1683,8 @@ export const AdminProducts: React.FC = () => {
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.classification ? 'rotate-180' : ''}`} />
                   </button>
-                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 px-5 pb-5 ${expandedSections.classification ? '' : 'hidden'}`}>
+                  {expandedSections.classification && <div className="border-t border-gray-100 mx-5"></div>}
+                  <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 px-5 py-5 ${expandedSections.classification ? '' : 'hidden'}`}>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Grupo</label>
                       <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-bold text-gray-700 transition-all appearance-none" value={formData.group || ''} onChange={e => setFormData({ ...formData, group: e.target.value })}>
@@ -1708,7 +1710,7 @@ export const AdminProducts: React.FC = () => {
                 <div className="bg-white rounded-[1rem] shadow-sm border border-gray-100 overflow-hidden">
                   <button type="button" onClick={() => toggleSection('compatibility')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Car size={18} className="text-gray-400" />
+                      <Car size={18} style={{ color: settings.primaryColor }} />
                       <div className="text-left">
                         <h3 className="font-bold text-gray-800">Compatibilidade</h3>
                         <p className="text-xs text-gray-400">Montadora, Veículo e Anos</p>
@@ -1716,8 +1718,8 @@ export const AdminProducts: React.FC = () => {
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.compatibility ? 'rotate-180' : ''}`} />
                   </button>
-
-                  <div className={`bg-gray-50 rounded-xl mx-5 mb-5 p-4 space-y-4 ${expandedSections.compatibility ? '' : 'hidden'}`}>
+                  {expandedSections.compatibility && <div className="border-t border-gray-100 mx-5"></div>}
+                  <div className={`bg-gray-50 rounded-xl mx-5 my-5 p-4 space-y-4 ${expandedSections.compatibility ? '' : 'hidden'}`}>
                     <div className="flex gap-3">
                       <select
                         className="w-1/4 p-3 rounded-xl border border-gray-200 outline-none focus:border-green-500 font-bold text-sm bg-white"
@@ -1850,7 +1852,7 @@ export const AdminProducts: React.FC = () => {
                 <div className="bg-white rounded-[1rem] shadow-sm border border-gray-100 overflow-hidden">
                   <button type="button" onClick={() => toggleSection('details')} className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Package size={18} className="text-gray-400" />
+                      <Package size={18} style={{ color: settings.primaryColor }} />
                       <div className="text-left">
                         <h3 className="font-bold text-gray-800">Detalhes Adicionais</h3>
                         <p className="text-xs text-gray-400">Componentes do kit e informações extras</p>
@@ -1858,7 +1860,8 @@ export const AdminProducts: React.FC = () => {
                     </div>
                     <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${expandedSections.details ? 'rotate-180' : ''}`} />
                   </button>
-                  <div className={`space-y-5 px-5 pb-5 ${expandedSections.details ? '' : 'hidden'}`}>
+                  {expandedSections.details && <div className="border-t border-gray-100 mx-5"></div>}
+                  <div className={`space-y-5 px-5 py-5 ${expandedSections.details ? '' : 'hidden'}`}>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Componentes do Kit (Opcional)</label>
                       <textarea className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-medium text-gray-600 transition-all h-20 resize-none" placeholder="Ex: COX-123 (Coxim), ROL-456 (Rolamento)..." value={formData.kitComponents || ''} onChange={e => setFormData({ ...formData, kitComponents: e.target.value })} />
