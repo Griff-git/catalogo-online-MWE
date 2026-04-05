@@ -1978,7 +1978,7 @@ export const MyClients: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {selectedDetail.cnpj && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">CNPJ</p><p className="text-xs font-bold text-gray-900">{selectedDetail.cnpj}</p></div>}
                 {selectedDetail.phone && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Telefone</p><p className="text-xs font-bold text-gray-900">{selectedDetail.phone}</p></div>}
-                {selectedDetail.email && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">E-mail</p><p className="text-xs font-bold text-gray-900">{selectedDetail.email}</p></div>}
+                {selectedDetail.email && <div className="bg-gray-50 p-3 rounded-2xl overflow-hidden"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">E-mail</p><p className="text-xs font-bold text-gray-900 truncate">{selectedDetail.email}</p></div>}
                 <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cadastro</p><p className="text-xs font-bold text-gray-900">{new Date(selectedDetail.createdAt).toLocaleDateString('pt-BR')}</p></div>
               </div>
               {selectedDetail.notes && (
@@ -2026,7 +2026,6 @@ export const MyClients: React.FC = () => {
               {!selectedDetail.linkedUserId && (
                 <button onClick={() => { openEdit(selectedDetail); setSelectedDetail(null); }} className="px-5 py-3 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] transition-all" style={{ backgroundColor: settings.primaryColor }}>Editar</button>
               )}
-              <button onClick={() => setSelectedDetail(null)} className="px-5 py-3 bg-gray-100 text-gray-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all">Fechar</button>
             </div>
           </div>
         </div>
