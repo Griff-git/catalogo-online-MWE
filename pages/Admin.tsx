@@ -1637,9 +1637,14 @@ export const AdminProducts: React.FC = () => {
             </div>
 
             {/* RIGHT MAIN CONTENT - ORGANIZED FIELDS */}
-            <div className="flex-1 bg-gray-50/50 overflow-y-auto p-8 relative">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="sticky top-0 float-right p-2 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors z-10"><X size={24} /></button>
+            <div className="flex-1 bg-gray-50/50 flex flex-col overflow-hidden">
+              {/* Header fixo */}
+              <div className="flex items-center justify-between px-8 py-5 border-b border-gray-200 bg-white flex-shrink-0">
+                <h3 className="font-bold text-gray-800">Detalhes do Produto</h3>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"><X size={20} /></button>
+              </div>
 
+              <div className="flex-1 overflow-y-auto p-8">
               <div className="max-w-3xl mx-auto space-y-8 pb-20">
 
                 {/* SECTION: IDENTIFICATION */}
@@ -1869,6 +1874,7 @@ export const AdminProducts: React.FC = () => {
                   </div>
                 </div>
 
+              </div>
               </div>
             </div>
 
