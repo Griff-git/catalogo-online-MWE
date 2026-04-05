@@ -2017,19 +2017,14 @@ export const AdminOrders: React.FC = () => {
         const imgUrl = item.image;
         if (!imgUrl) return;
         try {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          await new Promise<void>((resolve, reject) => {
-            img.onload = () => resolve();
-            img.onerror = () => reject();
-            img.src = imgUrl;
+          const resp = await fetch(imgUrl);
+          const blob = await resp.blob();
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
           });
-          const canvas = document.createElement('canvas');
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          const ctx = canvas.getContext('2d')!;
-          ctx.drawImage(img, 0, 0);
-          itemImages[idx] = canvas.toDataURL('image/png');
+          itemImages[idx] = dataUrl;
         } catch { /* ignore */ }
       }));
 
