@@ -17,6 +17,10 @@ import * as XLSX from 'xlsx';
 
 const formatPrice = (p: number) => p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
+
 // Remove acentos/diacríticos para pesquisa tolerante a erros de digitação
 const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -95,6 +99,7 @@ const ProductCard: React.FC<{ product: Product, onClick: () => void }> = ({ prod
 
 export const Catalog: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -164,6 +169,7 @@ export const Catalog: React.FC = () => {
     const loadProducts = async () => {
       const data = await db.getProducts();
       setProducts(data.filter(p => p.active));
+      setLoading(false);
     };
     loadProducts();
   }, []);
@@ -580,11 +586,28 @@ export const Catalog: React.FC = () => {
       </div>
 
       <ErrorBoundary scope="tabela de produtos">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-6">
-          {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(p => (
-            <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-6">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-[1rem] border border-gray-100 p-4 flex flex-col h-full">
+                <Skeleton className="aspect-square mb-4 rounded-2xl" />
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2 mb-2" />
+                <Skeleton className="h-3 w-full mb-4" />
+                <div className="mt-auto pt-2 border-t border-gray-50 flex justify-between">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-4 w-14" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-6">
+            {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(p => (
+              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
+            ))}
+          </div>
+        )}
       </ErrorBoundary>
 
       {filtered.length > 0 && (
@@ -1245,6 +1268,7 @@ export const Cart: React.FC = () => {
 export const MyOrders: React.FC = () => {
   const { user, settings } = useContext(AppContext);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const navigate = useNavigate();
 
@@ -1265,6 +1289,7 @@ export const MyOrders: React.FC = () => {
       if (user) {
         const data = await db.getOrders();
         setOrders(data.filter(o => o.userId === user.id));
+        setLoadingOrders(false);
       }
     };
     loadOrders();
@@ -1503,7 +1528,24 @@ export const MyOrders: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {orders.length > 0 ? (
+        {loadingOrders ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-[1.25rem] border border-gray-100 p-8 shadow-sm flex flex-col md:flex-row gap-8 items-center">
+              <div className="flex-1 w-full space-y-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div><Skeleton className="h-3 w-10 mb-2" /><Skeleton className="h-4 w-20" /></div>
+                  <div><Skeleton className="h-3 w-10 mb-2" /><Skeleton className="h-4 w-12" /></div>
+                  <div><Skeleton className="h-3 w-16 mb-2" /><Skeleton className="h-4 w-24" /></div>
+                </div>
+              </div>
+              <Skeleton className="h-12 w-32 rounded-2xl" />
+            </div>
+          ))
+        ) : orders.length > 0 ? (
           orders.map(order => (
             <div key={order.id} className="bg-white rounded-[1.25rem] border border-gray-100 p-8 shadow-sm hover:border-gray-300 transition-all flex flex-col md:flex-row gap-8 items-center">
               <div className="flex-1 w-full">
@@ -1694,6 +1736,7 @@ export const MyClients: React.FC = () => {
   const [clients, setClients] = useState<ResellerClient[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [allUsers, setAllUsers] = useState<import('../types').User[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
   const [search, setSearch] = useState('');
   const [editingClient, setEditingClient] = useState<ResellerClient | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -1705,9 +1748,11 @@ export const MyClients: React.FC = () => {
 
   useEffect(() => {
     if (!user || !isReseller) return;
-    db.getResellerClients(user.id).then(setClients);
-    db.getOrders().then(setOrders);
-    db.getUsers().then(setAllUsers);
+    Promise.all([
+      db.getResellerClients(user.id).then(setClients),
+      db.getOrders().then(setOrders),
+      db.getUsers().then(setAllUsers)
+    ]).finally(() => setLoadingClients(false));
   }, [user, isReseller]);
 
   // ESC to close modals
@@ -1846,7 +1891,19 @@ export const MyClients: React.FC = () => {
 
       {/* Client Cards */}
       <div className="space-y-3">
-        {filtered.length > 0 ? filtered.map(client => {
+        {loadingClients ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-[1rem] border border-gray-100 p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="flex items-center gap-4 flex-1">
+                  <Skeleton className="w-12 h-12 rounded-2xl" />
+                  <div className="flex-1"><Skeleton className="h-4 w-40 mb-2" /><Skeleton className="h-3 w-56" /></div>
+                </div>
+                <div className="flex gap-3"><Skeleton className="h-4 w-20" /><Skeleton className="h-4 w-20" /><Skeleton className="h-9 w-20 rounded-2xl" /><Skeleton className="h-9 w-20 rounded-2xl" /></div>
+              </div>
+            </div>
+          ))
+        ) : filtered.length > 0 ? filtered.map(client => {
           const co = getClientOrders(client);
           const lastOrder = getLastOrderDate(client);
           const active = isActive(client);

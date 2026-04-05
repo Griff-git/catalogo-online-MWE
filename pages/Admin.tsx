@@ -20,6 +20,10 @@ const formatPrice = (price: number) => {
   return price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
+
 // Remove acentos/diacríticos para pesquisa tolerante a erros de digitação
 const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -572,6 +576,7 @@ export const AdminDashboard: React.FC = () => {
   });
 
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [loadingDash, setLoadingDash] = useState(true);
 
   const showFeedback = (message: string) => {
     setToast({ visible: true, message });
@@ -616,6 +621,7 @@ export const AdminDashboard: React.FC = () => {
       });
 
       setRecentOrders(orders.slice(0, 5));
+      setLoadingDash(false);
     };
 
     loadStats();
@@ -688,6 +694,17 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* KPIs Grid */}
+      {loadingDash ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="p-8 rounded-[1.25rem] bg-white border border-gray-100 shadow-sm">
+              <Skeleton className="h-3 w-32 mb-4" />
+              <Skeleton className="h-8 w-40 mb-6" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ))}
+        </div>
+      ) :
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="p-8 rounded-[1.25rem] bg-gray-900 text-white shadow-2xl shadow-gray-200 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform z-0">
@@ -742,7 +759,7 @@ export const AdminDashboard: React.FC = () => {
             {stats.itensBaixoEstoque > 0 ? 'Itens com baixo estoque' : 'Estoque saudável'}
           </div>
         </div>
-      </div>
+      </div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Lado Esquerdo: Ações Pendentes */}
@@ -875,6 +892,7 @@ export const AdminDashboard: React.FC = () => {
 export const AdminProducts: React.FC = () => {
   const { settings } = useContext(AppContext);
   const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
@@ -899,10 +917,10 @@ export const AdminProducts: React.FC = () => {
   const [uploadComplete, setUploadComplete] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
 
-  // Corrected: load is now async to handle promise from db.getProducts()
   const load = async () => {
     const data = await db.getProducts();
     setProducts([...data]);
+    setLoadingProducts(false);
   };
   useEffect(() => { load(); }, []);
 
@@ -1413,6 +1431,19 @@ export const AdminProducts: React.FC = () => {
       <div className="bg-white rounded-[1.25rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <ErrorBoundary scope="lista de produtos">
+            {loadingProducts ? (
+              <div className="p-6 space-y-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 py-2">
+                    <Skeleton className="w-14 h-14 rounded-2xl" />
+                    <div className="flex-1"><Skeleton className="h-4 w-48 mb-2" /><Skeleton className="h-3 w-32" /></div>
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                ))}
+              </div>
+            ) :
             <table className="min-w-full divide-y divide-gray-50">
               <thead className="bg-gray-50/50">
                 <tr>
@@ -1478,7 +1509,7 @@ export const AdminProducts: React.FC = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table>}
           </ErrorBoundary>
         </div>
 
@@ -1882,6 +1913,7 @@ export const AdminOrders: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { settings } = useContext(AppContext);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selected, setSelected] = useState<Order | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -1889,10 +1921,10 @@ export const AdminOrders: React.FC = () => {
   const initialFilter = (searchParams.get('status') as OrderStatus) || 'ALL';
   const [filter, setFilter] = useState<OrderStatus | 'ALL'>(initialFilter);
 
-  // Corrected: load is now async to handle promise from db.getOrders()
   const load = async () => {
     const data = await db.getOrders();
     setOrders(data);
+    setLoadingOrders(false);
   };
 
   useEffect(() => {
@@ -2195,6 +2227,20 @@ export const AdminOrders: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-[1.25rem] shadow-sm border border-gray-100 overflow-hidden">
+        {loadingOrders ? (
+          <div className="p-6 space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 py-2">
+                <Skeleton className="w-10 h-10 rounded-xl" />
+                <div className="flex-1"><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-3 w-16" /></div>
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) :
         <table className="min-w-full divide-y divide-gray-50">
           <thead className="bg-gray-50/50">
             <tr>
@@ -2246,9 +2292,9 @@ export const AdminOrders: React.FC = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table>}
 
-        {filteredOrders.length === 0 && (
+        {!loadingOrders && filteredOrders.length === 0 && (
           <div className="py-20 text-center">
             <FileSearch size={60} className="mx-auto text-gray-100 mb-6" />
             <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Nenhum pedido encontrado</p>
@@ -2285,6 +2331,7 @@ export const AdminUsers: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { settings } = useContext(AppContext);
   const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showCreateReseller, setShowCreateReseller] = useState(false);
@@ -2305,11 +2352,10 @@ export const AdminUsers: React.FC = () => {
   });
   const [isCreating, setIsCreating] = useState(false);
 
-  // Corrected: load is now async to handle promise from db.getUsers()
   const load = async () => {
     const data = await db.getUsers();
-    // Mostrar todos exceto ADMIN
     setUsers(data.filter(u => u.role !== Role.ADMIN));
+    setLoadingUsers(false);
   };
 
   useEffect(() => {
@@ -2516,6 +2562,18 @@ export const AdminUsers: React.FC = () => {
 
       {/* Grid de Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loadingUsers && Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+            <div className="flex items-center gap-3.5">
+              <Skeleton className="w-11 h-11 rounded-xl" />
+              <div className="flex-1"><Skeleton className="h-4 w-32 mb-2" /><Skeleton className="h-3 w-20" /></div>
+            </div>
+            <div className="space-y-2"><Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-3/4" /></div>
+            <div className="pt-3 border-t border-gray-100 flex gap-2"><Skeleton className="h-5 w-16 rounded-full" /><Skeleton className="h-5 w-16 rounded-full" /></div>
+          </div>
+        ))}
+      </div>
+      {!loadingUsers && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredUsers.map(u => (
           <div key={u.id} onClick={() => setSelectedUser(u)} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-gray-200 transition-all cursor-pointer group overflow-hidden">
             {/* Header */}
@@ -2582,7 +2640,7 @@ export const AdminUsers: React.FC = () => {
             <button onClick={() => { setSearchQuery(''); setFilter('ALL'); setRoleFilter('ALL'); }} className="mt-4 text-xs font-black text-primary underline">Limpar filtros</button>
           </div>
         )}
-      </div>
+      </div>}
 
       {selectedUser && (
         <UserDetailsModal
