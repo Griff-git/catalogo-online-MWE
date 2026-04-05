@@ -1393,46 +1393,8 @@ export const MyOrders: React.FC = () => {
 
     y += infoBoxH + 12;
 
-    // ====== PRÉ-CARREGAR IMAGENS DOS PRODUTOS ======
-    const loadImageAsDataUrl = (url: string): Promise<string | null> => {
-      return new Promise((resolve) => {
-        const tryLoad = (withCors: boolean) => {
-          const img = new Image();
-          if (withCors) img.crossOrigin = 'anonymous';
-          img.onload = () => {
-            try {
-              const c = document.createElement('canvas');
-              c.width = 100; c.height = 100;
-              const ctx = c.getContext('2d')!;
-              const s = Math.min(img.naturalWidth, img.naturalHeight);
-              const sx = (img.naturalWidth - s) / 2;
-              const sy = (img.naturalHeight - s) / 2;
-              ctx.drawImage(img, sx, sy, s, s, 0, 0, 100, 100);
-              resolve(c.toDataURL('image/jpeg', 0.7));
-            } catch {
-              if (withCors) tryLoad(false);
-              else resolve(null);
-            }
-          };
-          img.onerror = () => {
-            if (withCors) tryLoad(false);
-            else resolve(null);
-          };
-          img.src = url;
-        };
-        tryLoad(true);
-      });
-    };
-    const itemImages: Record<number, string> = {};
-    await Promise.all(order.items.map(async (item: any, idx: number) => {
-      if (!item.image) return;
-      const dataUrl = await loadImageAsDataUrl(item.image);
-      if (dataUrl) itemImages[idx] = dataUrl;
-    }));
-
     // ====== TABELA DE ITENS ======
     const tableData = order.items.map((item: any) => [
-      '',
       item.internalCode || '-',
       item.name || item.productName || item.productId || '-',
       item.application || '-',
@@ -1443,7 +1405,7 @@ export const MyOrders: React.FC = () => {
 
     autoTable(doc, {
       startY: y,
-      head: [['', 'CÓDIGO', 'PRODUTO', 'APLICAÇÃO', 'QTD', 'UNIT.', 'SUBTOTAL']],
+      head: [['CÓDIGO', 'PRODUTO', 'APLICAÇÃO', 'QTD', 'UNIT.', 'SUBTOTAL']],
       body: tableData,
       theme: 'plain',
       headStyles: {
@@ -1459,33 +1421,20 @@ export const MyOrders: React.FC = () => {
         cellPadding: 5,
         textColor: [50, 50, 50],
         lineColor: [230, 230, 230],
-        lineWidth: 0.3,
-        minCellHeight: 14
+        lineWidth: 0.3
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252]
       },
       columnStyles: {
-        0: { cellWidth: 14 },
-        1: { cellWidth: 22, fontStyle: 'bold' },
-        2: { cellWidth: 42 },
-        3: { cellWidth: 38 },
-        4: { halign: 'center', cellWidth: 14 },
-        5: { halign: 'right', cellWidth: 24 },
-        6: { halign: 'right', cellWidth: 24, fontStyle: 'bold' }
+        0: { cellWidth: 24, fontStyle: 'bold' },
+        1: { cellWidth: 48 },
+        2: { cellWidth: 44 },
+        3: { halign: 'center', cellWidth: 16 },
+        4: { halign: 'right', cellWidth: 26 },
+        5: { halign: 'right', cellWidth: 26, fontStyle: 'bold' }
       },
-      margin: { left: 14, right: 14 },
-      didDrawCell: (data: any) => {
-        if (data.section === 'body' && data.column.index === 0) {
-          const imgData = itemImages[data.row.index];
-          if (imgData) {
-            const dim = 10;
-            const xPos = data.cell.x + (data.cell.width - dim) / 2;
-            const yPos = data.cell.y + (data.cell.height - dim) / 2;
-            doc.addImage(imgData, 'PNG', xPos, yPos, dim, dim);
-          }
-        }
-      }
+      margin: { left: 14, right: 14 }
     });
 
     // ====== TOTAL DESTACADO ======
