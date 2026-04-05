@@ -1393,8 +1393,31 @@ export const MyOrders: React.FC = () => {
 
     y += infoBoxH + 12;
 
+    // ====== PRÉ-CARREGAR IMAGENS DOS PRODUTOS ======
+    const itemImages: Record<number, string> = {};
+    await Promise.all(order.items.map(async (item: any, idx: number) => {
+      const imgUrl = item.image;
+      if (!imgUrl) return;
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject();
+          img.src = imgUrl;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+        itemImages[idx] = canvas.toDataURL('image/png');
+      } catch { /* ignore */ }
+    }));
+
     // ====== TABELA DE ITENS ======
     const tableData = order.items.map((item: any) => [
+      '',
       item.internalCode || '-',
       item.name || item.productName || item.productId || '-',
       item.application || '-',
@@ -1405,7 +1428,7 @@ export const MyOrders: React.FC = () => {
 
     autoTable(doc, {
       startY: y,
-      head: [['CÓDIGO', 'PRODUTO', 'APLICAÇÃO', 'QTD', 'UNIT.', 'SUBTOTAL']],
+      head: [['', 'CÓDIGO', 'PRODUTO', 'APLICAÇÃO', 'QTD', 'UNIT.', 'SUBTOTAL']],
       body: tableData,
       theme: 'plain',
       headStyles: {
@@ -1421,20 +1444,33 @@ export const MyOrders: React.FC = () => {
         cellPadding: 5,
         textColor: [50, 50, 50],
         lineColor: [230, 230, 230],
-        lineWidth: 0.3
+        lineWidth: 0.3,
+        minCellHeight: 14
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252]
       },
       columnStyles: {
-        0: { cellWidth: 24, fontStyle: 'bold' },
-        1: { cellWidth: 48 },
-        2: { cellWidth: 44 },
-        3: { halign: 'center', cellWidth: 16 },
-        4: { halign: 'right', cellWidth: 26 },
-        5: { halign: 'right', cellWidth: 26, fontStyle: 'bold' }
+        0: { cellWidth: 14 },
+        1: { cellWidth: 22, fontStyle: 'bold' },
+        2: { cellWidth: 42 },
+        3: { cellWidth: 38 },
+        4: { halign: 'center', cellWidth: 14 },
+        5: { halign: 'right', cellWidth: 24 },
+        6: { halign: 'right', cellWidth: 24, fontStyle: 'bold' }
       },
-      margin: { left: 14, right: 14 }
+      margin: { left: 14, right: 14 },
+      didDrawCell: (data: any) => {
+        if (data.section === 'body' && data.column.index === 0) {
+          const imgData = itemImages[data.row.index];
+          if (imgData) {
+            const dim = 10;
+            const xPos = data.cell.x + (data.cell.width - dim) / 2;
+            const yPos = data.cell.y + (data.cell.height - dim) / 2;
+            doc.addImage(imgData, 'PNG', xPos, yPos, dim, dim);
+          }
+        }
+      }
     });
 
     // ====== TOTAL DESTACADO ======
