@@ -1980,16 +1980,16 @@ export const MyClients: React.FC = () => {
                 {selectedDetail.phone && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Telefone</p><p className="text-xs font-bold text-gray-900">{selectedDetail.phone}</p></div>}
                 {selectedDetail.email && <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">E-mail</p><p className="text-xs font-bold text-gray-900 break-all">{selectedDetail.email}</p></div>}
               </div>
-              <div className="bg-gray-50 p-3 rounded-2xl mt-3">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Data de Cadastro</p>
-                <p className="text-xs font-bold text-gray-900">{new Date(selectedDetail.createdAt).toLocaleDateString('pt-BR')}</p>
-              </div>
-              {selectedDetail.notes && (
-                <div className="mt-3 p-3 rounded-2xl border border-gray-100">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Observações</p>
-                  <p className="text-xs text-gray-700 font-medium">{selectedDetail.notes}</p>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="bg-gray-50 p-3 rounded-2xl">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Data de Cadastro</p>
+                  <p className="text-xs font-bold text-gray-900">{new Date(selectedDetail.createdAt).toLocaleDateString('pt-BR')}</p>
                 </div>
-              )}
+                <div className="bg-gray-50 p-3 rounded-2xl">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Observações</p>
+                  <p className="text-xs text-gray-700 font-medium">{selectedDetail.notes || '—'}</p>
+                </div>
+              </div>
               {selectedDetail.linkedUserId && (
                 <div className="mt-3 p-3 rounded-2xl border border-gray-100">
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Login Vinculado</p>
