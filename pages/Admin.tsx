@@ -197,9 +197,9 @@ const OrderDetailsModal: React.FC<{
               <thead>
                 <tr className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   <th className="px-4 py-3 text-left">Produto</th>
-                  <th className="px-4 py-3 text-center w-16">Qtd</th>
-                  <th className="px-4 py-3 text-right w-20">Unit.</th>
-                  <th className="px-4 py-3 text-right w-24">Subtotal</th>
+                  <th className="px-4 py-3 text-center w-14">Qtd</th>
+                  <th className="px-4 py-3 text-right w-28">Unit.</th>
+                  <th className="px-4 py-3 text-right w-32">Subtotal</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -222,15 +222,15 @@ const OrderDetailsModal: React.FC<{
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center font-bold text-gray-600">{i.quantity}</td>
-                    <td className="px-4 py-3 text-right text-gray-500">R$ {formatPrice(i.price || 0)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-gray-900">R$ {formatPrice((i.price || 0) * (i.quantity || 1))}</td>
+                    <td className="px-4 py-3 text-right text-gray-500 whitespace-nowrap">R$ {formatPrice(i.price || 0)}</td>
+                    <td className="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">R$ {formatPrice((i.price || 0) * (i.quantity || 1))}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr className="border-t border-gray-200 bg-gray-50">
                   <td colSpan={3} className="px-4 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Total</td>
-                  <td className="px-4 py-3 text-right text-base font-black text-gray-900">R$ {formatPrice(order.total)}</td>
+                  <td className="px-4 py-3 text-right text-base font-black text-gray-900 whitespace-nowrap">R$ {formatPrice(order.total)}</td>
                 </tr>
               </tfoot>
             </table>
