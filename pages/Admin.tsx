@@ -1831,7 +1831,7 @@ export const AdminProducts: React.FC = () => {
                 {/* SECTION: DETAILS */}
                 <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><Package size={20} /></div>
+                    <div className="p-2 bg-gray-100 text-gray-600 rounded-lg"><Package size={20} /></div>
                     <h3 className="font-bold text-lg text-gray-800">Detalhes Adicionais</h3>
                   </div>
                   <div className="space-y-5">
@@ -2098,10 +2098,10 @@ export const AdminOrders: React.FC = () => {
 
   const StatusBadge = ({ status }: { status: OrderStatus }) => {
     const config: Record<OrderStatus, { label: string; color: string; icon: any }> = {
-      ANALYSIS: { label: 'Em Análise', color: 'bg-amber-50 text-amber-700 border-amber-100', icon: Clock },
-      APPROVED: { label: 'Aprovado', color: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: CheckCircle },
-      PENDING: { label: 'Pendente', color: 'bg-orange-50 text-orange-700 border-orange-100', icon: Clock },
-      SHIPPED: { label: 'Enviado', color: 'bg-blue-50 text-blue-700 border-blue-100', icon: Truck },
+      ANALYSIS: { label: 'Em Análise', color: 'bg-gray-50 text-gray-600 border-gray-200', icon: Clock },
+      APPROVED: { label: 'Aprovado', color: 'bg-green-50 text-green-700 border-green-100', icon: CheckCircle },
+      PENDING: { label: 'Pendente', color: 'bg-gray-50 text-gray-600 border-gray-200', icon: Clock },
+      SHIPPED: { label: 'Enviado', color: 'bg-gray-50 text-gray-600 border-gray-200', icon: Truck },
       COMPLETED: { label: 'Concluído', color: 'bg-green-50 text-green-700 border-green-100', icon: CheckCircle },
       CANCELED: { label: 'Cancelado', color: 'bg-red-50 text-red-700 border-red-100', icon: Ban },
     };
@@ -2122,13 +2122,13 @@ export const AdminOrders: React.FC = () => {
         </div>
 
         <div className="flex gap-4">
-          <div className="bg-amber-50 px-5 py-3 rounded-2xl border border-amber-100 shadow-sm">
-            <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest leading-none mb-1">Novos</p>
-            <p className="text-lg font-black text-amber-700">{stats.pending}</p>
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Novos</p>
+            <p className="text-lg font-black text-gray-900">{stats.pending}</p>
           </div>
-          <div className="bg-blue-50 px-5 py-3 rounded-2xl border border-blue-100 shadow-sm">
-            <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">Enviados</p>
-            <p className="text-lg font-black text-blue-700">{stats.shipped}</p>
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Enviados</p>
+            <p className="text-lg font-black text-gray-900">{stats.shipped}</p>
           </div>
           <div className="bg-gray-900 px-5 py-3 rounded-2xl border border-gray-800 shadow-xl">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 text-center">Faturado</p>
@@ -2198,10 +2198,10 @@ export const AdminOrders: React.FC = () => {
                 <td className="px-8 py-5">
                   <p className="text-xs font-extrabold text-gray-900 group-hover:text-primary transition-colors">{o.userStoreName}</p>
                   {o.clientName && (
-                    <p className="text-[10px] text-purple-600 font-bold mt-0.5">Cliente: {o.clientName}</p>
+                    <p className="text-[10px] text-gray-500 font-bold mt-0.5">Cliente: {o.clientName}</p>
                   )}
                   {o.paymentMethod && (
-                    <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{o.paymentMethod}</p>
+                    <p className="text-[10px] text-gray-400 font-bold mt-0.5">{o.paymentMethod}</p>
                   )}
                 </td>
                 <td className="px-8 py-5 text-center font-bold text-gray-500 text-xs">
@@ -2379,7 +2379,7 @@ export const AdminUsers: React.FC = () => {
   const StatusBadge = ({ status }: { status: UserStatus }) => {
     const config = {
       [UserStatus.APPROVED]: { label: 'Ativo', color: 'bg-green-50 text-green-700 border-green-100', icon: ShieldCheck },
-      [UserStatus.PENDING]: { label: 'Análise', color: 'bg-amber-50 text-amber-700 border-amber-100', icon: Clock },
+      [UserStatus.PENDING]: { label: 'Análise', color: 'bg-gray-50 text-gray-600 border-gray-200', icon: Clock },
       [UserStatus.REJECTED]: { label: 'Recusado', color: 'bg-red-50 text-red-700 border-red-100', icon: UserMinus },
       [UserStatus.INACTIVE]: { label: 'Inativo', color: 'bg-gray-50 text-gray-500 border-gray-200', icon: Power },
     };
@@ -2420,9 +2420,9 @@ export const AdminUsers: React.FC = () => {
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total</p>
             <p className="text-lg font-black text-gray-900">{counts.total}</p>
           </div>
-          <div className="bg-amber-50 px-5 py-3 rounded-2xl border border-amber-100 shadow-sm">
-            <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest leading-none mb-1">Pendentes</p>
-            <p className="text-lg font-black text-amber-700">{counts.pending}</p>
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Pendentes</p>
+            <p className="text-lg font-black text-gray-900">{counts.pending}</p>
           </div>
           <div className="bg-green-50 px-5 py-3 rounded-2xl border border-green-100 shadow-sm">
             <p className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none mb-1">Ativos</p>
@@ -3086,7 +3086,7 @@ export const AdminSettings: React.FC = () => {
                               />
                             </div>
                             {isUnlimited && (
-                              <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">Sem Limite</span>
+                              <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">Sem Limite</span>
                             )}
                           </div>
                         </div>
@@ -3123,11 +3123,11 @@ export const AdminSettings: React.FC = () => {
                         const isAvista = !optObj.days || optObj.days.length === 0;
 
                         return (
-                          <div key={oIdx} className={`group relative rounded-2xl border transition-all ${hasDiscount ? 'bg-emerald-50/50 border-emerald-100' : 'bg-gray-50/80 border-gray-100'} hover:shadow-md`}>
+                          <div key={oIdx} className={`group relative rounded-2xl border transition-all ${hasDiscount ? 'bg-green-50/50 border-green-100' : 'bg-gray-50/80 border-gray-100'} hover:shadow-md`}>
                             <div className="p-5">
                               <div className="flex items-start gap-4">
                                 {/* Ícone tipo de pagamento */}
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isAvista ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isAvista ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
                                   {isAvista ? <DollarSign size={18} /> : <Clock size={18} />}
                                 </div>
 
@@ -3147,12 +3147,12 @@ export const AdminSettings: React.FC = () => {
                                       }}
                                     />
                                     {hasDiscount && (
-                                      <span className="text-[9px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 whitespace-nowrap">
+                                      <span className="text-[9px] font-black text-green-700 bg-green-100 px-2.5 py-1 rounded-lg border border-green-200 whitespace-nowrap">
                                         {optObj.discountPercent}% OFF
                                       </span>
                                     )}
                                     {isAvista && (
-                                      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">À VISTA</span>
+                                      <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">À VISTA</span>
                                     )}
                                     {!isAvista && optObj.days && (
                                       <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">{optObj.days.length}x PARCELAS</span>

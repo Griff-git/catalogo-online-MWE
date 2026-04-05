@@ -992,7 +992,7 @@ export const Cart: React.FC = () => {
                 {disc > 0 ? (
                   <>
                     <p className="text-[10px] text-gray-400 line-through font-bold">{formatPrice(item.price * item.quantity)}</p>
-                    <p className="font-black text-emerald-700 text-sm md:text-base">{formatPrice(itemTotal)}</p>
+                    <p className="font-black text-green-700 text-sm md:text-base">{formatPrice(itemTotal)}</p>
                   </>
                 ) : (
                   <p className="font-black text-gray-900 text-sm md:text-base whitespace-nowrap">{formatPrice(itemTotal)}</p>
@@ -1014,12 +1014,12 @@ export const Cart: React.FC = () => {
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Cliente *</label>
               {/* Selected client display */}
               {selectedClient ? (
-                <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border-2 border-emerald-200 rounded-2xl">
+                <div className="flex items-center justify-between px-4 py-3 bg-green-50 border-2 border-green-200 rounded-2xl">
                   <div>
-                    <p className="text-sm font-bold text-emerald-800">{selectedClient.tradeName || selectedClient.companyName}</p>
-                    {selectedClient.cnpj && <p className="text-[10px] text-emerald-600 font-medium">CNPJ: {selectedClient.cnpj}</p>}
+                    <p className="text-sm font-bold text-gray-900">{selectedClient.tradeName || selectedClient.companyName}</p>
+                    {selectedClient.cnpj && <p className="text-[10px] text-gray-500 font-medium">CNPJ: {selectedClient.cnpj}</p>}
                   </div>
-                  <button onClick={() => { setSelectedClientId(''); setClientSearch(''); }} className="text-emerald-500 hover:text-red-500 transition-colors"><X size={16} /></button>
+                  <button onClick={() => { setSelectedClientId(''); setClientSearch(''); }} className="text-gray-400 hover:text-red-500 transition-colors"><X size={16} /></button>
                 </div>
               ) : (
                 <div className="relative">
@@ -1272,10 +1272,10 @@ export const MyOrders: React.FC = () => {
 
   const getStatusStyle = (status: OrderStatus) => {
     switch (status) {
-      case 'ANALYSIS': return 'bg-amber-50 text-amber-700 border-amber-100';
-      case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'PENDING': return 'bg-orange-50 text-orange-700 border-orange-100';
-      case 'SHIPPED': return 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'ANALYSIS': return 'bg-gray-50 text-gray-600 border-gray-200';
+      case 'APPROVED': return 'bg-green-50 text-green-700 border-green-100';
+      case 'PENDING': return 'bg-gray-50 text-gray-600 border-gray-200';
+      case 'SHIPPED': return 'bg-gray-50 text-gray-600 border-gray-200';
       case 'COMPLETED': return 'bg-green-50 text-green-700 border-green-100';
       case 'CANCELED': return 'bg-red-50 text-red-700 border-red-100';
       default: return 'bg-gray-50 text-gray-700 border-gray-100';
@@ -1591,21 +1591,25 @@ export const MyOrders: React.FC = () => {
                 </div>
               </div>
               {selectedOrder.clientName && (
-                <div className="mt-4 bg-purple-50 p-4 rounded-2xl border border-purple-100">
-                  <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1">Cliente Final</p>
-                  <p className="text-sm font-bold text-purple-800">{selectedOrder.clientName}</p>
+                <div className="mt-4 p-4 rounded-2xl border border-gray-100">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cliente Final</p>
+                  <p className="text-sm font-bold text-gray-900">{selectedOrder.clientName}</p>
                 </div>
               )}
-              {selectedOrder.paymentMethod && (
-                <div className="mt-4 bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                  <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Condição de Pagamento</p>
-                  <p className="text-sm font-bold text-emerald-800">{selectedOrder.paymentMethod}</p>
-                </div>
-              )}
-              {selectedOrder.observations && (
-                <div className="mt-4 bg-amber-50 p-4 rounded-2xl border border-amber-100">
-                  <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">Observações</p>
-                  <p className="text-sm font-bold text-amber-800 whitespace-pre-wrap">{selectedOrder.observations}</p>
+              {(selectedOrder.paymentMethod || selectedOrder.observations) && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedOrder.paymentMethod && (
+                    <div className="p-4 rounded-2xl border border-gray-100">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Pagamento</p>
+                      <p className="text-sm font-bold text-gray-900">{selectedOrder.paymentMethod}</p>
+                    </div>
+                  )}
+                  {selectedOrder.observations && (
+                    <div className="p-4 rounded-2xl border border-gray-100">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Observações</p>
+                      <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap">{selectedOrder.observations}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1656,7 +1660,7 @@ export const MyOrders: React.FC = () => {
                 {user?.role === 'RESELLER' && selectedOrder.status === 'ANALYSIS' && (
                   <button
                     onClick={() => handleOrderStatus(selectedOrder, 'APPROVED')}
-                    className="px-6 py-3.5 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-emerald-600 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+                    className="px-6 py-3.5 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-green-700 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
                   >
                     <CheckCircle2 size={14} /> Aprovar Pedido
                   </button>
@@ -1834,7 +1838,7 @@ export const MyClients: React.FC = () => {
           <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total de Clientes</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col items-center justify-center">
-          <p className="text-2xl font-black text-emerald-600">{clients.filter(c => isActive(c)).length}</p>
+          <p className="text-2xl font-black text-green-600">{clients.filter(c => isActive(c)).length}</p>
           <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Clientes Ativos</p>
         </div>
       </div>
@@ -1858,7 +1862,7 @@ export const MyClients: React.FC = () => {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-black text-gray-900 truncate">{client.tradeName || client.companyName}</p>
-                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${active ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
                         {active ? 'Ativo' : 'Inativo'}
                       </span>
                       {client.linkedUserId && (
@@ -1977,15 +1981,15 @@ export const MyClients: React.FC = () => {
                 <div className="bg-gray-50 p-3 rounded-2xl"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Cadastro</p><p className="text-xs font-bold text-gray-900">{new Date(selectedDetail.createdAt).toLocaleDateString('pt-BR')}</p></div>
               </div>
               {selectedDetail.notes && (
-                <div className="mt-3 bg-amber-50 p-3 rounded-2xl border border-amber-100">
-                  <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">Observações</p>
-                  <p className="text-xs text-amber-800 font-medium">{selectedDetail.notes}</p>
+                <div className="mt-3 p-3 rounded-2xl border border-gray-100">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Observações</p>
+                  <p className="text-xs text-gray-700 font-medium">{selectedDetail.notes}</p>
                 </div>
               )}
               {selectedDetail.linkedUserId && (
-                <div className="mt-3 bg-blue-50 p-3 rounded-2xl border border-blue-100">
-                  <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">Login Vinculado</p>
-                  <p className="text-xs text-blue-800 font-medium">Este cliente possui conta própria no catálogo.{(() => { const ll = getLastLogin(selectedDetail); return ll ? ` Último login: ${new Date(ll).toLocaleString('pt-BR')}` : ''; })()}</p>
+                <div className="mt-3 p-3 rounded-2xl border border-gray-100">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Login Vinculado</p>
+                  <p className="text-xs text-gray-700 font-medium">Este cliente possui conta própria no catálogo.{(() => { const ll = getLastLogin(selectedDetail); return ll ? ` Último login: ${new Date(ll).toLocaleString('pt-BR')}` : ''; })()}</p>
                 </div>
               )}
             </div>
