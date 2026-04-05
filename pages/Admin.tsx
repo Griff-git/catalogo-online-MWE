@@ -2012,20 +2012,40 @@ export const AdminOrders: React.FC = () => {
       y += infoBoxH + 12;
 
       // ====== PRÉ-CARREGAR IMAGENS DOS PRODUTOS ======
+      const loadImageAsDataUrl = (url: string): Promise<string | null> => {
+        return new Promise((resolve) => {
+          const tryLoad = (withCors: boolean) => {
+            const img = new Image();
+            if (withCors) img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              try {
+                const c = document.createElement('canvas');
+                c.width = 100; c.height = 100;
+                const ctx = c.getContext('2d')!;
+                const s = Math.min(img.naturalWidth, img.naturalHeight);
+                const sx = (img.naturalWidth - s) / 2;
+                const sy = (img.naturalHeight - s) / 2;
+                ctx.drawImage(img, sx, sy, s, s, 0, 0, 100, 100);
+                resolve(c.toDataURL('image/jpeg', 0.7));
+              } catch {
+                if (withCors) tryLoad(false);
+                else resolve(null);
+              }
+            };
+            img.onerror = () => {
+              if (withCors) tryLoad(false);
+              else resolve(null);
+            };
+            img.src = url;
+          };
+          tryLoad(true);
+        });
+      };
       const itemImages: Record<number, string> = {};
       await Promise.all(order.items.map(async (item: any, idx: number) => {
-        const imgUrl = item.image;
-        if (!imgUrl) return;
-        try {
-          const resp = await fetch(imgUrl);
-          const blob = await resp.blob();
-          const dataUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-          });
-          itemImages[idx] = dataUrl;
-        } catch { /* ignore */ }
+        if (!item.image) return;
+        const dataUrl = await loadImageAsDataUrl(item.image);
+        if (dataUrl) itemImages[idx] = dataUrl;
       }));
 
       // ====== TABELA DE ITENS ======

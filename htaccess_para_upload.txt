@@ -52,6 +52,13 @@ RewriteRule . dist/index.html [L]
     RewriteRule ^uploads/.*\.php$ - [F,L]
 </IfModule>
 
+# CORS para imagens (necessário para PDF com imagens)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>
+
 # Comprimir respostas
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/css application/json application/javascript text/xml application/xml
