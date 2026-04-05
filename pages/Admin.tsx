@@ -718,7 +718,7 @@ export const AdminDashboard: React.FC = () => {
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Projeção (Pendentes)</p>
             <p className="text-3xl font-black text-gray-900">R$ {formatPrice(stats.faturamentoPendente)}</p>
           </div>
-          <div className="mt-8 flex items-center gap-2 text-orange-500 text-xs font-bold relative z-10">
+          <div className="mt-8 flex items-center gap-2 text-gray-500 text-xs font-bold relative z-10">
             <BarChart3 size={14} /> {stats.pedidosAbertos} orçamentos ativos
           </div>
         </div>
@@ -757,7 +757,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[1.25rem] border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="font-black text-gray-900 flex items-center gap-2"><ShieldAlert size={18} className="text-orange-500" /> Pendências</h3>
+              <h3 className="font-black text-gray-900 flex items-center gap-2"><ShieldAlert size={18} className="text-gray-400" /> Pendências</h3>
               <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">Ação Necessária</span>
             </div>
 
@@ -827,10 +827,10 @@ export const AdminDashboard: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-50">
               <thead className="bg-gray-50/50">
                 <tr>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Pedido</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</th>
-                  <th className="px-8 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Pedido</th>
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
+                  <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</th>
+                  <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -1353,11 +1353,11 @@ export const AdminProducts: React.FC = () => {
         </div>
 
         <div className="flex gap-4">
-          <div className="bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Cadastrados</p>
             <p className="text-lg font-black text-gray-900">{products.length}</p>
           </div>
-          <div className="bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Baixo Estoque</p>
             <p className="text-lg font-black text-red-600">{products.filter(p => p.stock < 10).length}</p>
           </div>
@@ -1365,7 +1365,7 @@ export const AdminProducts: React.FC = () => {
       </div>
 
       {/* Barra de Ações Revitalizada com Barra de Pesquisa */}
-      <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-gray-100 flex flex-col gap-6">
+      <div className="bg-white p-6 rounded-[1rem] border border-gray-100 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <input type="file" ref={fileInputRef} onChange={handleImportExcel} accept=".xlsx, .xls" className="hidden" />
@@ -1382,7 +1382,7 @@ export const AdminProducts: React.FC = () => {
 
           <button
             onClick={() => openModal()}
-            className="w-full md:w-auto px-8 py-4 text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-xs tracking-widest transition-all shadow-xl hover:scale-[1.02]"
+            className="w-full md:w-auto px-6 py-4 text-white rounded-2xl flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] shrink-0"
             style={{ backgroundColor: settings.primaryColor, boxShadow: `0 10px 25px -5px ${settings.primaryColor}50` }}
           >
             <Plus size={20} /> Cadastrar Peça
@@ -1406,7 +1406,7 @@ export const AdminProducts: React.FC = () => {
           <select
             value={sortBy}
             onChange={e => { setSortBy(e.target.value as any); setCurrentPage(1); }}
-            className="bg-white border border-gray-200 rounded-xl py-2 px-3 font-bold text-sm text-gray-700 outline-none focus:border-orange-400/50 focus:ring-2 focus:ring-orange-400/20 w-full sm:w-auto"
+            className="bg-white border border-gray-200 rounded-xl py-2 px-3 font-bold text-sm text-gray-700 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200 w-full sm:w-auto"
           >
             <option value="relevance">Relevância</option>
             <option value="code-asc">Código (A-Z)</option>
@@ -1562,7 +1562,7 @@ export const AdminProducts: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => imageInputRef.current?.click()}
-                    className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#3483FA] hover:text-[#3483FA] hover:bg-[#3483FA]/5 transition-all"
+                    className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all"
                   >
                     <ImagePlus size={28} />
                     <span className="text-[9px] font-black uppercase tracking-wider">Adicionar</span>
@@ -1632,7 +1632,7 @@ export const AdminProducts: React.FC = () => {
               {/* ACTIONS FOOTER */}
               <div className="mt-4 pt-4 border-t border-gray-100 flex gap-3 sticky bottom-0 bg-white pb-1">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors">Cancelar</button>
-                <button type="submit" className="flex-[2] py-3.5 text-white rounded-xl font-bold shadow-lg shadow-[#3483FA]/20 transition-all hover:scale-[1.02] active:scale-95" style={{ backgroundColor: settings.primaryColor }}>Salvar Alterações</button>
+                <button type="submit" className="flex-[2] py-3.5 text-white rounded-xl font-bold shadow-lg shadow-gray-200 transition-all hover:scale-[1.02] active:scale-95" style={{ backgroundColor: settings.primaryColor }}>Salvar Alterações</button>
               </div>
             </div>
 
@@ -1663,15 +1663,15 @@ export const AdminProducts: React.FC = () => {
                   <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 px-5 py-5 ${expandedSections.identification ? '' : 'hidden'}`}>
                     <div className="md:col-span-2 space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Nome Completo do Produto</label>
-                      <input required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-bold text-gray-700 transition-all" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                      <input required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-bold text-gray-700 transition-all" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Código Interno / SKU</label>
-                      <input required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-mono font-bold text-gray-700 uppercase transition-all" value={formData.internalCode || ''} onChange={e => setFormData({ ...formData, internalCode: e.target.value })} />
+                      <input required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-mono font-bold text-gray-700 uppercase transition-all" value={formData.internalCode || ''} onChange={e => setFormData({ ...formData, internalCode: e.target.value })} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Códigos Paralelos</label>
-                      <input className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-mono text-sm text-gray-600 transition-all" placeholder="Ex: 93301, AM-55..." value={formData.parallelCodes || ''} onChange={e => setFormData({ ...formData, parallelCodes: e.target.value })} />
+                      <input className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-mono text-sm text-gray-600 transition-all" placeholder="Ex: 93301, AM-55..." value={formData.parallelCodes || ''} onChange={e => setFormData({ ...formData, parallelCodes: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -1692,21 +1692,21 @@ export const AdminProducts: React.FC = () => {
                   <div className={`grid grid-cols-1 md:grid-cols-2 gap-5 px-5 py-5 ${expandedSections.classification ? '' : 'hidden'}`}>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Grupo</label>
-                      <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-bold text-gray-700 transition-all appearance-none" value={formData.group || ''} onChange={e => setFormData({ ...formData, group: e.target.value })}>
+                      <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-bold text-gray-700 transition-all appearance-none" value={formData.group || ''} onChange={e => setFormData({ ...formData, group: e.target.value })}>
                         <option value="">Selecione...</option>
                         {GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Posição</label>
-                      <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-bold text-gray-700 transition-all appearance-none" value={formData.position || ''} onChange={e => setFormData({ ...formData, position: e.target.value })}>
+                      <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-bold text-gray-700 transition-all appearance-none" value={formData.position || ''} onChange={e => setFormData({ ...formData, position: e.target.value })}>
                         <option value="">Selecione...</option>
                         {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                       </select>
                     </div>
                     <div className="md:col-span-2 space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Aplicação (Descrição Completa)</label>
-                      <textarea required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-medium text-gray-600 transition-all h-24 resize-none" value={formData.application || ''} onChange={e => setFormData({ ...formData, application: e.target.value })} />
+                      <textarea required className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-medium text-gray-600 transition-all h-24 resize-none" value={formData.application || ''} onChange={e => setFormData({ ...formData, application: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -1869,7 +1869,7 @@ export const AdminProducts: React.FC = () => {
                   <div className={`space-y-5 px-5 py-5 ${expandedSections.details ? '' : 'hidden'}`}>
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Componentes do Kit (Opcional)</label>
-                      <textarea className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-[#3483FA] font-medium text-gray-600 transition-all h-20 resize-none" placeholder="Ex: COX-123 (Coxim), ROL-456 (Rolamento)..." value={formData.kitComponents || ''} onChange={e => setFormData({ ...formData, kitComponents: e.target.value })} />
+                      <textarea className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-medium text-gray-600 transition-all h-20 resize-none" placeholder="Ex: COX-123 (Coxim), ROL-456 (Rolamento)..." value={formData.kitComponents || ''} onChange={e => setFormData({ ...formData, kitComponents: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -2163,9 +2163,9 @@ export const AdminOrders: React.FC = () => {
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Enviados</p>
             <p className="text-lg font-black text-gray-900">{stats.shipped}</p>
           </div>
-          <div className="bg-gray-900 px-5 py-3 rounded-2xl border border-gray-800 shadow-xl">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 text-center">Faturado</p>
-            <p className="text-lg font-black text-white">R$ {formatPrice(stats.completedTotal)}</p>
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Faturado</p>
+            <p className="text-lg font-black text-gray-900">R$ {formatPrice(stats.completedTotal)}</p>
           </div>
         </div>
       </div>
@@ -2449,7 +2449,7 @@ export const AdminUsers: React.FC = () => {
 
         {/* Métricas Rápidas */}
         <div className="flex gap-4 flex-wrap">
-          <div className="bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total</p>
             <p className="text-lg font-black text-gray-900">{counts.total}</p>
           </div>
@@ -2457,8 +2457,8 @@ export const AdminUsers: React.FC = () => {
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Pendentes</p>
             <p className="text-lg font-black text-gray-900">{counts.pending}</p>
           </div>
-          <div className="bg-green-50 px-5 py-3 rounded-2xl border border-green-100 shadow-sm">
-            <p className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none mb-1">Ativos</p>
+          <div className="bg-gray-50 px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Ativos</p>
             <p className="text-lg font-black text-green-700">{counts.approved}</p>
           </div>
         </div>
