@@ -139,7 +139,7 @@ const OrderDetailsModal: React.FC<{
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
           <div>
-            <h2 className="font-black text-gray-900 text-lg">Pedido #{order.id.slice(0, 8).toUpperCase()}</h2>
+            <h2 className="font-black text-lg" style={{ color: settings.primaryColor }}>Pedido #{order.id.slice(0, 8).toUpperCase()}</h2>
             <p className="text-xs text-gray-400 font-medium mt-0.5">{new Date(order.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"><X size={20} /></button>
