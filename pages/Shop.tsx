@@ -1698,6 +1698,7 @@ export const MyClients: React.FC = () => {
   const [editingClient, setEditingClient] = useState<ResellerClient | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<ResellerClient | null>(null);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [form, setForm] = useState({ companyName: '', tradeName: '', cnpj: '', phone: '', email: '', notes: '' });
 
   const isReseller = user?.role === Role.RESELLER;
@@ -2003,13 +2004,16 @@ export const MyClients: React.FC = () => {
                 return (
                   <div className="space-y-2">
                     {co.slice(0, 10).map(order => (
-                      <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                      <button key={order.id} onClick={() => setViewingOrder(order)} className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left">
                         <div>
                           <p className="text-xs font-bold text-gray-900">#{order.id.slice(0, 8).toUpperCase()}</p>
                           <p className="text-[10px] text-gray-400 font-medium">{new Date(order.date).toLocaleDateString('pt-BR')}</p>
                         </div>
-                        <p className="text-sm font-black" style={{ color: settings.primaryColor }}>{formatPrice(order.total)}</p>
-                      </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-black" style={{ color: settings.primaryColor }}>{formatPrice(order.total)}</p>
+                          <ChevronRight size={14} className="text-gray-300" />
+                        </div>
+                      </button>
                     ))}
                   </div>
                 );
@@ -2023,6 +2027,102 @@ export const MyClients: React.FC = () => {
                 <button onClick={() => { openEdit(selectedDetail); setSelectedDetail(null); }} className="px-5 py-3 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] transition-all" style={{ backgroundColor: settings.primaryColor }}>Editar</button>
               )}
               <button onClick={() => setSelectedDetail(null)} className="px-5 py-3 bg-gray-100 text-gray-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all">Fechar</button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* Modal Detalhes do Pedido (dentro de MyClients) */}
+      {viewingOrder && createPortal(
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) setViewingOrder(null); }}>
+          <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="font-black text-lg" style={{ color: settings.primaryColor }}>Pedido #{viewingOrder.id.slice(0, 8).toUpperCase()}</h2>
+                  <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-gray-50 text-gray-600 border-gray-200">
+                    {viewingOrder.status === 'ANALYSIS' ? 'Em Análise' : viewingOrder.status === 'APPROVED' ? 'Aprovado' : viewingOrder.status === 'PENDING' ? 'Pendente' : viewingOrder.status === 'SHIPPED' ? 'Enviado' : viewingOrder.status === 'COMPLETED' ? 'Concluído' : 'Cancelado'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 font-medium mt-0.5">{new Date(viewingOrder.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+              </div>
+              <button onClick={() => setViewingOrder(null)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"><X size={20} /></button>
+            </div>
+
+            {/* Info */}
+            <div className="p-6 space-y-5 overflow-y-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="col-span-2 p-3 rounded-xl border border-gray-100" style={{ backgroundColor: `${settings.primaryColor}08`, borderLeftWidth: '3px', borderLeftColor: settings.primaryColor }}>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Lojista / Revendedor</p>
+                  <p className="text-sm font-bold text-gray-900">{viewingOrder.userStoreName}</p>
+                  {viewingOrder.clientName && (
+                    <p className="text-xs text-gray-500 font-medium mt-1">Cliente: <span className="font-bold text-gray-700">{viewingOrder.clientName}</span></p>
+                  )}
+                </div>
+                <div className="p-3 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pagamento</p>
+                  <p className="text-sm font-bold text-gray-900">{viewingOrder.paymentMethod || 'Não informado'}</p>
+                </div>
+                <div className="p-3 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
+                  <p className="text-sm font-black text-gray-900">{formatPrice(viewingOrder.total)}</p>
+                </div>
+                {viewingOrder.observations && (
+                  <div className="p-3 rounded-xl border border-gray-100 col-span-2 md:col-span-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Observações</p>
+                    <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap">{viewingOrder.observations}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Items table */}
+              <div className="border border-gray-100 rounded-xl overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left">Produto</th>
+                      <th className="px-4 py-3 text-center w-14">Qtd</th>
+                      <th className="px-4 py-3 text-right w-28">Unit.</th>
+                      <th className="px-4 py-3 text-right w-32">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {viewingOrder.items.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
+                              <img src={item.image || 'https://placehold.co/80x80/f8fafc/94a3b8?text=...'} alt="" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-gray-900 truncate max-w-[280px]">{item.name || item.productName}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {item.internalCode && <span className="text-[10px] font-bold text-gray-400">{item.internalCode}</span>}
+                                {item.application && <span className="text-[10px] text-gray-400 truncate max-w-[200px]">{item.application}</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center font-bold text-gray-600">{item.quantity}</td>
+                        <td className="px-4 py-3 text-right text-gray-500 whitespace-nowrap">{formatPrice(item.price || 0)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">{formatPrice((item.price || 0) * (item.quantity || 1))}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t border-gray-200 bg-gray-50">
+                      <td colSpan={3} className="px-4 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Total</td>
+                      <td className="px-4 py-3 text-right text-base font-black text-gray-900 whitespace-nowrap">{formatPrice(viewingOrder.total)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 flex-shrink-0">
+              <button onClick={() => setViewingOrder(null)} className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Fechar</button>
             </div>
           </div>
         </div>
