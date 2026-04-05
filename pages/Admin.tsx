@@ -135,108 +135,116 @@ const OrderDetailsModal: React.FC<{
 
   return createPortal(
     <div className="fixed inset-0 w-full h-full bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300" style={{ zIndex }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl max-w-4xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-        <div className="px-6 py-5 md:px-10 md:py-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
           <div>
-            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: settings.primaryColor }}>Gestão de Pedido</p>
-            <h2 className="font-black text-gray-900 text-xl md:text-2xl flex items-center gap-3">REF: #{order.id.slice(0, 8).toUpperCase()}</h2>
+            <h2 className="font-black text-gray-900 text-lg">Pedido #{order.id.slice(0, 8).toUpperCase()}</h2>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">{new Date(order.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
           </div>
-          <button onClick={onClose} className="p-2 md:p-3 hover:bg-gray-200 rounded-full text-gray-400 transition-colors"><X size={20} className="md:w-6 md:h-6" /></button>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"><X size={20} /></button>
         </div>
-        <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+
+        {/* Content */}
+        <div className="p-6 space-y-5 overflow-y-auto">
+          {/* Info grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
               disabled={!onViewRetailer}
               onClick={() => onViewRetailer && onViewRetailer(order.userId)}
-              className={`md:col-span-2 p-4 rounded-2xl border text-left group transition-all ${onViewRetailer ? 'hover:bg-white hover:border-gray-300 hover:shadow-lg' : 'cursor-default'}`}
-              style={{ backgroundColor: `${settings.primaryColor}10`, borderColor: `${settings.primaryColor}25` }}
+              className={`col-span-2 p-3 rounded-xl border border-gray-100 text-left group transition-all ${onViewRetailer ? 'hover:border-gray-300 cursor-pointer' : 'cursor-default'}`}
             >
-              <div className="flex justify-between items-start">
-                <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: settings.primaryColor }}>Lojista / Revendedor</p>
-                {onViewRetailer && <ExternalLink size={14} className="text-gray-400 group-hover:text-primary transition-colors" />}
-              </div>
-              <p className={`font-extrabold text-gray-900 text-lg ${onViewRetailer ? 'group-hover:text-primary transition-colors' : ''}`}>{order.userStoreName}</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Lojista / Revendedor</p>
+              <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                {order.userStoreName}
+                {onViewRetailer && <ExternalLink size={12} className="text-gray-300" />}
+              </p>
               {order.clientName && (
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-[8px] font-black uppercase px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md border border-purple-100">Cliente Final</span>
-                  <span className="text-sm font-bold text-purple-800">{order.clientName}</span>
+                <p className="text-xs text-gray-500 font-medium mt-1">Cliente: <span className="font-bold text-gray-700">{order.clientName}</span></p>
+              )}
+            </button>
+            <div className="p-3 rounded-xl border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Status</p>
+              <p className="text-sm font-bold text-gray-900">{statusLabels[order.status]}</p>
+            </div>
+            <div className="p-3 rounded-xl border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
+              <p className="text-sm font-black text-gray-900">R$ {formatPrice(order.total)}</p>
+            </div>
+          </div>
+
+          {/* Payment & Observations - inline */}
+          {(order.paymentMethod || order.observations) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {order.paymentMethod && (
+                <div className="p-3 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Pagamento</p>
+                  <p className="text-sm font-bold text-gray-900">{order.paymentMethod}</p>
                 </div>
               )}
-              {onViewRetailer && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Clique para ver detalhes do cadastro</p>}
-            </button>
-            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Data</p>
-              <p className="font-bold text-gray-700">{new Date(order.date).toLocaleDateString()}</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status Atual</p>
-              <p className="font-bold text-gray-700">{statusLabels[order.status]}</p>
-            </div>
-          </div>
-          {order.paymentMethod && (
-            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Condição de Pagamento</p>
-              <p className="font-bold text-emerald-800">{order.paymentMethod}</p>
-            </div>
-          )}
-          {order.observations && (
-            <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
-              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Observações</p>
-              <p className="font-bold text-amber-800 whitespace-pre-wrap">{order.observations}</p>
-            </div>
-          )}
-
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Itens do Pedido</p>
-            <div className="space-y-3">
-              {order.items.map((i: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl group">
-                  {/* Thumbnail */}
-                  <div className="w-14 h-14 rounded-xl bg-white border border-gray-100 overflow-hidden flex-shrink-0">
-                    <img
-                      src={i.image || 'https://placehold.co/100x100/f1f5f9/94a3b8?text=...'}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <button onClick={() => handleProductClick(i.productId)} className="text-sm font-bold text-gray-900 hover:underline text-left flex items-center gap-1.5 group-hover:translate-x-0.5 transition-transform">
-                      <span className="truncate">{i.name || i.productName}</span>
-                      <Info size={12} className="text-gray-300 flex-shrink-0" />
-                    </button>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                      {i.internalCode && (
-                        <p className="text-[10px] text-gray-400 font-medium">Cód: <span className="font-bold text-gray-600">{i.internalCode}</span></p>
-                      )}
-                      <p className="text-[10px] text-gray-400 font-medium">Qtd: <span className="font-bold text-gray-600">{i.quantity}</span></p>
-                    </div>
-                    {i.application && (
-                      <p className="text-[10px] text-gray-400 font-medium mt-0.5 truncate">Aplicação: <span className="text-gray-500">{i.application}</span></p>
-                    )}
-                  </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="text-xs font-bold text-gray-900">R$ {formatPrice((i.price || 0) * (i.quantity || 1))}</p>
-                    <p className="text-[10px] text-gray-400">R$ {formatPrice(i.price || 0)} /un</p>
-                  </div>
+              {order.observations && (
+                <div className="p-3 rounded-xl border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Observações</p>
+                  <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap">{order.observations}</p>
                 </div>
-              ))}
+              )}
             </div>
-            {/* Total */}
-            <div className="mt-4 flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-              <p className="font-black text-gray-400 uppercase text-xs tracking-widest">Total</p>
-              <p className="text-lg md:text-2xl font-black" style={{ color: settings.primaryColor }}>R$ {formatPrice(order.total)}</p>
-            </div>
+          )}
+
+          {/* Items table */}
+          <div className="border border-gray-100 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left">Produto</th>
+                  <th className="px-4 py-3 text-center w-16">Qtd</th>
+                  <th className="px-4 py-3 text-right w-20">Unit.</th>
+                  <th className="px-4 py-3 text-right w-24">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {order.items.map((i: any, idx: number) => (
+                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
+                          <img src={i.image || 'https://placehold.co/80x80/f8fafc/94a3b8?text=...'} alt="" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <button onClick={() => handleProductClick(i.productId)} className="text-sm font-bold text-gray-900 hover:underline text-left truncate block max-w-[280px]">
+                            {i.name || i.productName}
+                          </button>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {i.internalCode && <span className="text-[10px] font-bold text-gray-400">{i.internalCode}</span>}
+                            {i.application && <span className="text-[10px] text-gray-400 truncate max-w-[200px]">{i.application}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center font-bold text-gray-600">{i.quantity}</td>
+                    <td className="px-4 py-3 text-right text-gray-500">R$ {formatPrice(i.price || 0)}</td>
+                    <td className="px-4 py-3 text-right font-bold text-gray-900">R$ {formatPrice((i.price || 0) * (i.quantity || 1))}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-gray-200 bg-gray-50">
+                  <td colSpan={3} className="px-4 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Total</td>
+                  <td className="px-4 py-3 text-right text-base font-black text-gray-900">R$ {formatPrice(order.total)}</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
+          {/* Status change */}
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Mudar Status para</p>
-            <div className="flex flex-wrap gap-2 md:gap-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Alterar Status</p>
+            <div className="flex flex-wrap gap-2">
               {(Object.keys(statusLabels) as OrderStatus[]).map((s) => (
                 <button
                   key={s}
                   onClick={() => onStatusChange(s)}
-                  className={`flex-1 md:flex-none px-4 md:px-5 py-2.5 rounded-2xl text-[10px] md:text-[11px] font-black border transition-all uppercase tracking-widest whitespace-nowrap ${order.status === s ? 'text-white border-transparent shadow-xl' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-900 hover:text-gray-900'}`}
-                  style={order.status === s ? { backgroundColor: settings.primaryColor } : {}}
+                  className={`px-4 py-2 rounded-lg text-[11px] font-bold border transition-all ${order.status === s ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'}`}
                 >
                   {statusLabels[s]}
                 </button>
@@ -244,9 +252,11 @@ const OrderDetailsModal: React.FC<{
             </div>
           </div>
         </div>
-        <div className="px-6 py-5 md:px-10 md:py-8 bg-gray-50/50 flex flex-col md:flex-row justify-end gap-3 border-t border-gray-100 flex-shrink-0">
-          <button onClick={onDownload} className="flex items-center justify-center gap-2 px-8 py-3 text-white rounded-2xl text-sm font-black transition-all" style={{ backgroundColor: settings.primaryColor }}><Download size={18} /> PDF</button>
-          <button onClick={onClose} className="px-8 py-3 bg-white border border-gray-200 text-gray-700 rounded-2xl text-sm font-bold hover:bg-gray-50 transition-colors">Fechar</button>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 flex-shrink-0">
+          <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Fechar</button>
+          <button onClick={onDownload} className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors"><Download size={16} /> Baixar PDF</button>
         </div>
       </div>
       {viewingProduct && <ProductInfoModal product={viewingProduct} onClose={() => setViewingProduct(null)} primaryColor={settings.primaryColor} zIndex={zIndex + 100} />}
