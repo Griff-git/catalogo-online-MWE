@@ -917,12 +917,15 @@ export const AdminProducts: React.FC = () => {
   const [uploadComplete, setUploadComplete] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
 
+  const [brands, setBrands] = useState<any[]>([]);
+
   const load = async () => {
     const data = await db.getProducts();
     setProducts([...data]);
     setLoadingProducts(false);
   };
-  useEffect(() => { load(); }, []);
+  const loadBrands = async () => { try { setBrands(await db.getBrands()); } catch(e) {} };
+  useEffect(() => { load(); loadBrands(); }, []);
 
   const openModal = (p?: Product) => {
     setFormData(p || {
@@ -941,7 +944,8 @@ export const AdminProducts: React.FC = () => {
       images: [],
       compatibility: [], // Garante inicialização
       stock: 10,
-      active: true
+      active: true,
+      brand: ''
     });
     setIsModalOpen(true);
   };
@@ -1023,6 +1027,7 @@ export const AdminProducts: React.FC = () => {
           'Estoque': p.stock,
           'Texto Estoque': p.min_stock_display || '',
           'Ativo': p.active ? 'Sim' : 'Não',
+          'Marca': p.brand || '',
           'Imagem URL': imageToExport
         };
       }));
@@ -1059,7 +1064,7 @@ export const AdminProducts: React.FC = () => {
     // Rename headers to be user friendly (optional, but good for template)
     XLSX.utils.sheet_add_aoa(worksheet, [[
       "Código Interno", "Conversão", "Componentes do Kit", "Nome", "Descrição", "Aplicação",
-      "Compatibilidade", "Grupo", "Posição", "Preço", "Preço Promocional", "Estoque", "Texto Estoque", "Imagem URL"
+      "Compatibilidade", "Grupo", "Posição", "Preço", "Preço Promocional", "Estoque", "Texto Estoque", "Marca", "Imagem URL"
     ]], { origin: "A1" });
 
     const workbook = XLSX.utils.book_new();
@@ -1164,7 +1169,8 @@ export const AdminProducts: React.FC = () => {
             images: row['Imagem URL'] ? String(row['Imagem URL']).split(',').map(s => s.trim()) : (row['Imagens'] ? String(row['Imagens']).split(',') : []),
             active: row['Ativo'] === undefined || row['Ativo'] === null || row['Ativo'] === ''
               ? true  // Se não tem coluna "Ativo", produto é ativo por padrão
-              : String(row['Ativo']).toUpperCase() === 'SIM' || String(row['Ativo']).toUpperCase() === 'TRUE' || row['Ativo'] === true || row['Ativo'] === 1
+              : String(row['Ativo']).toUpperCase() === 'SIM' || String(row['Ativo']).toUpperCase() === 'TRUE' || row['Ativo'] === true || row['Ativo'] === 1,
+            brand: String(row['Marca'] || row.brand || '')
           };
 
           if (product.internalCode) { // Basic validation
@@ -1725,6 +1731,13 @@ export const AdminProducts: React.FC = () => {
                       <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-bold text-gray-700 transition-all appearance-none" value={formData.position || ''} onChange={e => setFormData({ ...formData, position: e.target.value })}>
                         <option value="">Selecione...</option>
                         {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-1">Marca</label>
+                      <select className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl outline-none focus:bg-white focus:border-gray-400 font-bold text-gray-700 transition-all appearance-none" value={formData.brand || ''} onChange={e => setFormData({ ...formData, brand: e.target.value })}>
+                        <option value="">Sem marca</option>
+                        {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                       </select>
                     </div>
                     <div className="md:col-span-2 space-y-1">
@@ -2837,6 +2850,196 @@ export const AdminUsers: React.FC = () => {
         </div>, document.body
       )}
     </div>
+  );
+};
+
+export const AdminBrands: React.FC = () => {
+  const { settings } = useContext(AppContext);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingBrand, setEditingBrand] = useState<any | null>(null);
+  const [form, setForm] = useState({ name: '', logoUrl: '' });
+  const [uploading, setUploading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const load = async () => {
+    const data = await db.getBrands();
+    setBrands(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    const brand = {
+      id: editingBrand?.id || crypto.randomUUID(),
+      name: form.name.trim(),
+      logoUrl: form.logoUrl,
+      createdAt: editingBrand?.createdAt || new Date().toISOString()
+    };
+    await db.saveBrand(brand);
+    setShowForm(false);
+    setEditingBrand(null);
+    setForm({ name: '', logoUrl: '' });
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+    load();
+  };
+
+  const handleEdit = (b: any) => {
+    setEditingBrand(b);
+    setForm({ name: b.name, logoUrl: b.logoUrl || '' });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (b: any) => {
+    if (!confirm(`Excluir a marca "${b.name}"? Os produtos vinculados perderão a marca.`)) return;
+    await db.deleteBrand(b.id);
+    load();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await db.uploadImage(file);
+      setForm(prev => ({ ...prev, logoUrl: typeof url === 'string' ? url : '' }));
+    } catch (err) {
+      alert('Erro ao fazer upload da imagem.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <>
+    <FeedbackToast message="Marca salva com sucesso!" visible={showToast} primaryColor={settings.primaryColor} />
+    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Gestão de Catálogo</p>
+          <h1 className="text-3xl font-black text-gray-900">Marcas</h1>
+        </div>
+        <button
+          onClick={() => { setEditingBrand(null); setForm({ name: '', logoUrl: '' }); setShowForm(true); }}
+          className="px-6 py-4 text-white font-black rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] text-[10px] uppercase tracking-widest flex items-center gap-2 shrink-0"
+          style={{ backgroundColor: settings.primaryColor }}
+        >
+          <Plus size={16} /> Nova Marca
+        </button>
+      </div>
+
+      {/* Grid de marcas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {loading && Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <Skeleton className="w-16 h-16 rounded-xl mx-auto mb-4" />
+            <Skeleton className="h-4 w-24 mx-auto" />
+          </div>
+        ))}
+        {!loading && brands.map(b => (
+          <div key={b.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group overflow-hidden">
+            <div className="p-6 flex flex-col items-center">
+              {b.logoUrl ? (
+                <div className="w-20 h-20 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4 overflow-hidden">
+                  <img src={b.logoUrl} alt={b.name} className="max-w-full max-h-full object-contain p-1" />
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center mb-4 text-gray-300">
+                  <Tag size={32} />
+                </div>
+              )}
+              <h3 className="text-sm font-black text-gray-900 text-center">{b.name}</h3>
+            </div>
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-center gap-2">
+              <button onClick={() => handleEdit(b)} className="p-2 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-white transition-all"><Edit size={16} /></button>
+              <button onClick={() => handleDelete(b)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-white transition-all"><Trash2 size={16} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!loading && brands.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-20 text-center">
+          <Tag size={60} className="mx-auto text-gray-100 mb-6" />
+          <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Nenhuma marca cadastrada</p>
+          <p className="text-xs text-gray-400 mt-2">Clique em "Nova Marca" para começar</p>
+        </div>
+      )}
+
+      {/* Modal de formulário */}
+      {showForm && (
+        <Portal>
+          <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="text-lg font-black text-gray-900">{editingBrand ? 'Editar Marca' : 'Nova Marca'}</h2>
+                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400"><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-5">
+                {/* Logo */}
+                <div className="flex flex-col items-center">
+                  <div className="w-24 h-24 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center mb-3 overflow-hidden">
+                    {form.logoUrl ? (
+                      <img src={form.logoUrl} alt="Logo" className="max-w-full max-h-full object-contain p-2" />
+                    ) : (
+                      <ImagePlus size={32} className="text-gray-300" />
+                    )}
+                  </div>
+                  <label className="cursor-pointer">
+                    <span className="text-[10px] font-black uppercase tracking-widest hover:underline" style={{ color: settings.primaryColor }}>
+                      {uploading ? 'Enviando...' : 'Upload do Logo'}
+                    </span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                  </label>
+                </div>
+
+                {/* Nome */}
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block mb-2">Nome da Marca</label>
+                  <input
+                    type="text"
+                    className="w-full border-2 border-gray-50 bg-gray-50/50 p-4 rounded-2xl font-bold outline-none focus:bg-white focus:border-gray-100 transition-all"
+                    placeholder="Ex: Cofap, Nakata, Monroe..."
+                    value={form.name}
+                    onChange={e => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+
+                {/* URL manual (opcional) */}
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block mb-2">URL do Logo (opcional)</label>
+                  <input
+                    type="text"
+                    className="w-full border-2 border-gray-50 bg-gray-50/50 p-4 rounded-2xl font-bold outline-none focus:bg-white focus:border-gray-100 transition-all text-xs"
+                    placeholder="https://..."
+                    value={form.logoUrl}
+                    onChange={e => setForm({ ...form, logoUrl: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-100 flex gap-3">
+                <button onClick={() => setShowForm(false)} className="flex-1 py-4 bg-gray-100 text-gray-600 font-black rounded-2xl text-xs uppercase tracking-widest hover:bg-gray-200 transition-all">
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!form.name.trim()}
+                  className="flex-1 py-4 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                  style={{ backgroundColor: settings.primaryColor }}
+                >
+                  {editingBrand ? 'Salvar' : 'Criar Marca'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
+    </div>
+    </>
   );
 };
 

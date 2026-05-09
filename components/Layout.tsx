@@ -2,7 +2,7 @@
 import React, { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../App';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun, Bell } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun, Bell, Tag } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { UserStatus, Role } from '../types';
@@ -204,6 +204,7 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
     { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Usuários', path: '/admin/users', icon: Users, hasNotification: pendingCounts.users > 0 },
     { label: 'Produtos', path: '/admin/products', icon: Package },
+    { label: 'Marcas', path: '/admin/brands', icon: Tag },
     { label: 'Pedidos', path: '/admin/orders', icon: ClipboardList, hasNotification: pendingCounts.orders > 0 },
     { label: 'Configurações', path: '/admin/settings', icon: Settings },
   ];

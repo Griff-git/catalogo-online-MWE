@@ -24,7 +24,7 @@ const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
 // Remove acentos/diacríticos para pesquisa tolerante a erros de digitação
 const normalize = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-const ProductCard: React.FC<{ product: Product, onClick: () => void }> = ({ product, onClick }) => {
+const ProductCard: React.FC<{ product: Product, onClick: () => void, brandLogo?: string }> = ({ product, onClick, brandLogo }) => {
   const { settings } = useContext(AppContext);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -36,7 +36,14 @@ const ProductCard: React.FC<{ product: Product, onClick: () => void }> = ({ prod
       onClick={onClick}
       className="group bg-white rounded-[1rem] border border-gray-100 p-4 cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 relative flex flex-col h-full overflow-hidden"
     >
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+      {/* Brand logo - canto superior esquerdo */}
+      {brandLogo && (
+        <div className="absolute top-3 left-3 z-20 bg-white rounded-lg shadow-md border border-gray-100 p-1.5">
+          <img src={brandLogo} alt={product.brand || ''} className="h-6 w-auto max-w-[60px] object-contain" />
+        </div>
+      )}
+
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         {hasDiscount && (
           <div className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-sm shadow-red-200 animate-pulse">
             {discountPercent}% OFF
@@ -165,13 +172,24 @@ export const Catalog: React.FC = () => {
   const [selectedPosition, setSelectedPosition] = useState('');
   const [sortBy, setSortBy] = useState<'relevance' | 'code-asc' | 'code-desc' | 'price-asc' | 'price-desc'>('relevance');
 
+  const [brandsMap, setBrandsMap] = useState<Record<string, string>>({});
+
   useEffect(() => {
     const loadProducts = async () => {
       const data = await db.getProducts();
       setProducts(data.filter(p => p.active));
       setLoading(false);
     };
+    const loadBrands = async () => {
+      try {
+        const brands = await db.getBrands();
+        const map: Record<string, string> = {};
+        brands.forEach((b: any) => { if (b.logoUrl) map[b.name] = b.logoUrl; });
+        setBrandsMap(map);
+      } catch(e) {}
+    };
     loadProducts();
+    loadBrands();
   }, []);
 
   // Grupos dinâmicos extraídos dos produtos cadastrados
@@ -607,7 +625,7 @@ export const Catalog: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-6">
             {filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(p => (
-              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
+              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} brandLogo={p.brand ? brandsMap[p.brand] : undefined} />
             ))}
           </div>
         )}

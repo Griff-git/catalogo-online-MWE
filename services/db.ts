@@ -57,6 +57,9 @@ interface IDatabase {
   getNotifications(): Promise<any[]>;
   markNotificationsRead(): Promise<{ success: boolean }>;
   markNotificationRead(id: number): Promise<{ success: boolean }>;
+  getBrands(): Promise<any[]>;
+  saveBrand(brand: any): Promise<any>;
+  deleteBrand(id: string): Promise<void>;
 }
 
 // ============================================================
@@ -314,6 +317,19 @@ class ApiDB implements IDatabase {
   async markNotificationRead(id: number): Promise<{ success: boolean }> {
     return this.request('markNotificationRead', 'POST', { id });
   }
+
+  // Brands
+  async getBrands(): Promise<any[]> {
+    return this.request('getBrands');
+  }
+
+  async saveBrand(brand: any): Promise<any> {
+    return this.request('saveBrand', 'POST', brand);
+  }
+
+  async deleteBrand(id: string): Promise<void> {
+    return this.request(`deleteBrand&id=${id}`, 'DELETE');
+  }
 }
 
 // ============================================================
@@ -550,6 +566,17 @@ class LocalDB implements IDatabase {
   async getNotifications(): Promise<any[]> { return []; }
   async markNotificationsRead(): Promise<{ success: boolean }> { return { success: true }; }
   async markNotificationRead(_id: number): Promise<{ success: boolean }> { return { success: true }; }
+  async getBrands(): Promise<any[]> { return this.getStorage('brands', []); }
+  async saveBrand(brand: any): Promise<any> {
+    const all = this.getStorage<any[]>('brands', []);
+    const idx = all.findIndex(b => b.id === brand.id);
+    if (idx >= 0) { all[idx] = brand; } else { all.push(brand); }
+    this.setStorage('brands', all);
+    return brand;
+  }
+  async deleteBrand(id: string): Promise<void> {
+    this.setStorage('brands', this.getStorage<any[]>('brands', []).filter(b => b.id !== id));
+  }
 }
 
 // ============================================================
@@ -574,7 +601,8 @@ function mapProduct(p: any): Product {
     images: Array.isArray(p.images) ? p.images : [],
     stock: Number(p.stock || 0),
     active: Boolean(p.active),
-    compatibility: p.compatibility || []
+    compatibility: p.compatibility || [],
+    brand: String(p.brand || '')
   };
 }
 

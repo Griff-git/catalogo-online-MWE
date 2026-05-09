@@ -2,7 +2,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Login, Register, ForgotPassword, ResetPassword } from './pages/Auth';
-import { AdminDashboard, AdminUsers, AdminProducts, AdminSettings, AdminOrders } from './pages/Admin';
+import { AdminDashboard, AdminUsers, AdminProducts, AdminSettings, AdminOrders, AdminBrands } from './pages/Admin';
 import { Catalog, Cart, MyOrders, MyClients, Profile } from './pages/Shop';
 import { AdminLayout, ShopLayout } from './components/Layout';
 import { User, Product, CartItem, AppSettings, Role } from './types';
@@ -208,7 +208,7 @@ const App: React.FC = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/admin/*" element={<ProtectedRoute area="admin"><AdminLayout><Routes><Route path="dashboard" element={<AdminDashboard />} /><Route path="users" element={<AdminUsers />} /><Route path="products" element={<AdminProducts />} /><Route path="orders" element={<AdminOrders />} /><Route path="settings" element={<AdminSettings />} /><Route path="*" element={<Navigate to="dashboard" />} /></Routes></AdminLayout></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute area="admin"><AdminLayout><Routes><Route path="dashboard" element={<AdminDashboard />} /><Route path="users" element={<AdminUsers />} /><Route path="products" element={<AdminProducts />} /><Route path="orders" element={<AdminOrders />} /><Route path="brands" element={<AdminBrands />} /><Route path="settings" element={<AdminSettings />} /><Route path="*" element={<Navigate to="dashboard" />} /></Routes></AdminLayout></ProtectedRoute>} />
           <Route path="/*" element={<ProtectedRoute area="catalog"><ShopLayout><Routes><Route path="catalogo" element={<Catalog />} /><Route path="carrinho" element={<Cart />} /><Route path="pedidos" element={<MyOrders />} /><Route path="clientes" element={<MyClients />} /><Route path="perfil" element={<Profile />} /><Route path="*" element={<Navigate to="catalogo" />} /></Routes></ShopLayout></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>

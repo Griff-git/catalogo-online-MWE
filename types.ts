@@ -53,6 +53,7 @@ export interface Product {
   images: string[];
   stock: number;
   active: boolean;
+  brand?: string;
 }
 
 export interface CartItem extends Product {

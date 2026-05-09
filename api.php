@@ -252,6 +252,7 @@ function ensureColumns($conn) {
         "ALTER TABLE settings ADD COLUMN customAddress TEXT",
         "ALTER TABLE settings ADD COLUMN paymentPoliciesJson LONGTEXT",
         "ALTER TABLE settings ADD COLUMN promoBannerUrl VARCHAR(500) DEFAULT ''",
+        "ALTER TABLE products ADD COLUMN brand VARCHAR(100) DEFAULT ''",
     ];
     foreach ($migrations as $sql) {
         try { $conn->exec($sql); } catch (PDOException $e) { /* coluna já existe */ }
@@ -275,6 +276,14 @@ $conn->exec("CREATE TABLE IF NOT EXISTS reseller_clients (
     status VARCHAR(20) DEFAULT 'ACTIVE',
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_reseller (resellerId)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+// Criar tabela de marcas se não existir
+$conn->exec("CREATE TABLE IF NOT EXISTS brands (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    logoUrl TEXT DEFAULT '',
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 // Criar tabela de notificações se não existir
@@ -571,8 +580,8 @@ try {
 
             $compatibilityJson = !empty($input['compatibility']) ? json_encode($input['compatibility'], JSON_UNESCAPED_UNICODE) : '[]';
 
-            $sql = "REPLACE INTO products (id, internalCode, parallelCodes, name, description, manufacturer, vehicle, compatibility_json, application, kitComponents, group_name, position, price, promo_price, min_stock_display, images, stock, active)
-                    VALUES (:id, :internalCode, :parallelCodes, :name, :description, :manufacturer, :vehicle, :compatibility_json, :application, :kitComponents, :group_name, :position, :price, :promo_price, :min_stock_display, :images, :stock, :active)";
+            $sql = "REPLACE INTO products (id, internalCode, parallelCodes, name, description, manufacturer, vehicle, compatibility_json, application, kitComponents, group_name, position, price, promo_price, min_stock_display, images, stock, active, brand)
+                    VALUES (:id, :internalCode, :parallelCodes, :name, :description, :manufacturer, :vehicle, :compatibility_json, :application, :kitComponents, :group_name, :position, :price, :promo_price, :min_stock_display, :images, :stock, :active, :brand)";
             $stmt = $conn->prepare($sql);
 
             $params = [
@@ -593,7 +602,8 @@ try {
                 ':min_stock_display' => $input['min_stock_display'] ?? null,
                 ':images' => json_encode($input['images'] ?? []),
                 ':stock' => (int)($input['stock'] ?? 0),
-                ':active' => ($input['active'] ?? false) ? 1 : 0
+                ':active' => ($input['active'] ?? false) ? 1 : 0,
+                ':brand' => sanitizeString($input['brand'] ?? '')
             ];
 
             $stmt->execute($params);
@@ -634,8 +644,8 @@ try {
                     throw new Exception("Dados inválidos: esperado array de produtos.");
                 }
 
-                $sql = "REPLACE INTO products (id, internalCode, parallelCodes, name, description, manufacturer, vehicle, compatibility_json, application, kitComponents, group_name, position, price, promo_price, min_stock_display, images, stock, active)
-                        VALUES (:id, :internalCode, :parallelCodes, :name, :description, :manufacturer, :vehicle, :compatibility_json, :application, :kitComponents, :group_name, :position, :price, :promo_price, :min_stock_display, :images, :stock, :active)";
+                $sql = "REPLACE INTO products (id, internalCode, parallelCodes, name, description, manufacturer, vehicle, compatibility_json, application, kitComponents, group_name, position, price, promo_price, min_stock_display, images, stock, active, brand)
+                        VALUES (:id, :internalCode, :parallelCodes, :name, :description, :manufacturer, :vehicle, :compatibility_json, :application, :kitComponents, :group_name, :position, :price, :promo_price, :min_stock_display, :images, :stock, :active, :brand)";
                 $stmt = $conn->prepare($sql);
 
                 $errors = [];
@@ -669,7 +679,8 @@ try {
                             ':min_stock_display' => $product['min_stock_display'] ?? null,
                             ':images' => json_encode($product['images'] ?? []),
                             ':stock' => (int)($product['stock'] ?? 0),
-                            ':active' => ($product['active'] ?? false) ? 1 : 0
+                            ':active' => ($product['active'] ?? false) ? 1 : 0,
+                            ':brand' => $product['brand'] ?? ''
                         ];
                         $stmt->execute($params);
                         $successCount++;
@@ -1262,6 +1273,66 @@ try {
             break;
 
         // =========================================================
+        // MARCAS (BRANDS)
+        // =========================================================
+        case 'getBrands':
+            requireAuth();
+            $stmt = $conn->query("SELECT * FROM brands ORDER BY name");
+            jsonResponse($stmt->fetchAll());
+            break;
+
+        case 'saveBrand':
+            $authUser = requireAuth();
+            if ($authUser['role'] !== 'ADMIN' && !in_array('admin_panel', $authUser['permissions'] ?? [])) {
+                http_response_code(403);
+                jsonResponse(["error" => "Sem permissão."]);
+            }
+
+            if (empty($input['name'])) {
+                http_response_code(400);
+                jsonResponse(["error" => "Nome da marca é obrigatório."]);
+            }
+
+            $sql = "REPLACE INTO brands (id, name, logoUrl, createdAt) VALUES (:id, :name, :logoUrl, :createdAt)";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                ':id' => $input['id'] ?? bin2hex(random_bytes(18)),
+                ':name' => sanitizeString($input['name']),
+                ':logoUrl' => $input['logoUrl'] ?? '',
+                ':createdAt' => $input['createdAt'] ?? date('Y-m-d H:i:s')
+            ]);
+
+            auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'SAVE_BRAND', 'brands', $input['id'] ?? '', $input['name']);
+            jsonResponse($input);
+            break;
+
+        case 'deleteBrand':
+            $authUser = requireAuth();
+            if ($authUser['role'] !== 'ADMIN') {
+                http_response_code(403);
+                jsonResponse(["error" => "Sem permissão."]);
+            }
+            $id = $_GET['id'] ?? '';
+            if (empty($id)) {
+                http_response_code(400);
+                jsonResponse(["error" => "ID obrigatório."]);
+            }
+
+            // Remover a marca dos produtos que a utilizam
+            $brandStmt = $conn->prepare("SELECT name FROM brands WHERE id = :id");
+            $brandStmt->execute([':id' => $id]);
+            $brandRow = $brandStmt->fetch();
+            if ($brandRow) {
+                $conn->prepare("UPDATE products SET brand = '' WHERE brand = :name")->execute([':name' => $brandRow['name']]);
+            }
+
+            $stmt = $conn->prepare("DELETE FROM brands WHERE id = :id");
+            $stmt->execute([':id' => $id]);
+            auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'DELETE_BRAND', 'brands', $id);
+            jsonResponse(["success" => true]);
+            break;
+
+        // =========================================================
         // NOTIFICAÇÕES
         // =========================================================
         case 'getNotifications':
@@ -1325,7 +1396,8 @@ function mapProduct($p) {
         'images' => json_decode($p['images'] ?? '[]'),
         'stock' => (int)($p['stock'] ?? 0),
         'active' => (bool)($p['active'] ?? false),
-        'compatibility' => json_decode($p['compatibility_json'] ?? '[]', true) ?: []
+        'compatibility' => json_decode($p['compatibility_json'] ?? '[]', true) ?: [],
+        'brand' => $p['brand'] ?? ''
     ];
 }
 ?>
