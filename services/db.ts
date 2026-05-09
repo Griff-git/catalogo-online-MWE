@@ -54,6 +54,9 @@ interface IDatabase {
   deleteResellerClient(id: string): Promise<void>;
   getAuditLogs(page?: number, limit?: number): Promise<{ data: any[], total: number, page: number, totalPages: number }>;
   adminGenerateResetToken(email: string): Promise<{ success: boolean; token: string; expiresAt: string }>;
+  getNotifications(): Promise<any[]>;
+  markNotificationsRead(): Promise<{ success: boolean }>;
+  markNotificationRead(id: number): Promise<{ success: boolean }>;
 }
 
 // ============================================================
@@ -298,6 +301,19 @@ class ApiDB implements IDatabase {
   async adminGenerateResetToken(email: string): Promise<{ success: boolean; token: string; expiresAt: string }> {
     return this.request('adminGenerateResetToken', 'POST', { email });
   }
+
+  // Notifications
+  async getNotifications(): Promise<any[]> {
+    return this.request('getNotifications');
+  }
+
+  async markNotificationsRead(): Promise<{ success: boolean }> {
+    return this.request('markNotificationsRead', 'POST');
+  }
+
+  async markNotificationRead(id: number): Promise<{ success: boolean }> {
+    return this.request('markNotificationRead', 'POST', { id });
+  }
 }
 
 // ============================================================
@@ -530,6 +546,10 @@ class LocalDB implements IDatabase {
   async adminGenerateResetToken(_email: string): Promise<{ success: boolean; token: string; expiresAt: string }> {
     return { success: true, token: 'dev_reset_' + Date.now(), expiresAt: new Date(Date.now() + 86400000).toISOString() };
   }
+
+  async getNotifications(): Promise<any[]> { return []; }
+  async markNotificationsRead(): Promise<{ success: boolean }> { return { success: true }; }
+  async markNotificationRead(_id: number): Promise<{ success: boolean }> { return { success: true }; }
 }
 
 // ============================================================

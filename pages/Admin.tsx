@@ -2240,7 +2240,8 @@ export const AdminOrders: React.FC = () => {
               </div>
             ))}
           </div>
-        ) :
+        ) : <>
+        <div className="hidden md:block">
         <table className="min-w-full divide-y divide-gray-50">
           <thead className="bg-gray-50/50">
             <tr>
@@ -2274,6 +2275,9 @@ export const AdminOrders: React.FC = () => {
                   {o.paymentMethod && (
                     <p className="text-[10px] text-gray-400 font-bold mt-0.5">{o.paymentMethod}</p>
                   )}
+                  {o.observations && (
+                    <p className="text-[10px] text-amber-600 font-bold mt-0.5 flex items-center gap-1"><MessageCircle size={10} /> Obs: {o.observations.length > 40 ? o.observations.slice(0, 40) + '...' : o.observations}</p>
+                  )}
                 </td>
                 <td className="px-8 py-5 text-center font-bold text-gray-500 text-xs">
                   {o.items.reduce((acc, i) => acc + i.quantity, 0)} un.
@@ -2292,7 +2296,41 @@ export const AdminOrders: React.FC = () => {
               </tr>
             ))}
           </tbody>
-        </table>}
+        </table>
+        </div>
+
+        {/* Mobile: Cards responsivos */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {filteredOrders.map(o => (
+            <div key={o.id} className="p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                    <FileText size={14} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-gray-900">#{o.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="text-[10px] text-gray-400 font-bold">{new Date(o.date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <StatusBadge status={o.status} />
+              </div>
+              <div className="ml-10 space-y-1">
+                <p className="text-xs font-extrabold text-gray-900">{o.userStoreName}</p>
+                {o.clientName && <p className="text-[10px] text-gray-500 font-bold">Cliente: {o.clientName}</p>}
+                {o.observations && <p className="text-[10px] text-amber-600 font-bold flex items-center gap-1"><MessageCircle size={10} /> {o.observations.length > 50 ? o.observations.slice(0, 50) + '...' : o.observations}</p>}
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-sm font-black" style={{ color: settings.primaryColor }}>R$ {formatPrice(o.total)}</p>
+                  <div className="flex gap-1">
+                    <button onClick={() => setSelected(o)} className="p-2 text-gray-400 hover:text-gray-900 rounded-lg"><Eye size={16} /></button>
+                    <button onClick={() => generatePDF(o)} className="p-2 text-gray-400 hover:text-green-600 rounded-lg"><Download size={16} /></button>
+                    <button onClick={() => handleDeleteOrder(o.id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg"><Trash2 size={16} /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div></>}
 
         {!loadingOrders && filteredOrders.length === 0 && (
           <div className="py-20 text-center">

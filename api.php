@@ -48,6 +48,8 @@ header("Pragma: no-cache");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
@@ -82,7 +84,12 @@ try {
 // ============================================================
 // JWT HELPERS
 // ============================================================
-$jwtSecret = getenv('JWT_SECRET') ?: 'CHAVE_PADRAO_TROCAR_EM_PRODUCAO_' . md5($db_name);
+$jwtSecret = getenv('JWT_SECRET');
+if (!$jwtSecret || strlen($jwtSecret) < 32) {
+    http_response_code(500);
+    echo json_encode(["error" => "Erro de configuração: JWT_SECRET não definido ou muito curto no .env"]);
+    exit;
+}
 
 function base64url_encode($data) {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -192,6 +199,32 @@ function sanitizeString($str) {
     return htmlspecialchars(strip_tags(trim($str)), ENT_QUOTES, 'UTF-8');
 }
 
+// Rate limiting simples baseado em arquivo (compatível com hosting compartilhado)
+function checkRateLimit($action, $identifier, $maxAttempts = 5, $windowSeconds = 900) {
+    $dir = __DIR__ . '/uploads/.ratelimit';
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+
+    $file = $dir . '/' . md5($action . '_' . $identifier) . '.json';
+
+    $attempts = [];
+    if (file_exists($file)) {
+        $data = json_decode(file_get_contents($file), true);
+        if (is_array($data)) {
+            // Manter apenas tentativas dentro da janela
+            $cutoff = time() - $windowSeconds;
+            $attempts = array_filter($data, fn($t) => $t > $cutoff);
+        }
+    }
+
+    if (count($attempts) >= $maxAttempts) {
+        return false; // Bloqueado
+    }
+
+    $attempts[] = time();
+    file_put_contents($file, json_encode(array_values($attempts)));
+    return true; // Permitido
+}
+
 function validateEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
@@ -244,6 +277,28 @@ $conn->exec("CREATE TABLE IF NOT EXISTS reseller_clients (
     INDEX idx_reseller (resellerId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// Criar tabela de notificações se não existir
+$conn->exec("CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(30) DEFAULT 'info',
+    readAt DATETIME DEFAULT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_notif_user (userId),
+    INDEX idx_notif_read (readAt)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+function createNotification($conn, $userId, $title, $message, $type = 'info') {
+    try {
+        $stmt = $conn->prepare("INSERT INTO notifications (userId, title, message, type) VALUES (:userId, :title, :message, :type)");
+        $stmt->execute([':userId' => $userId, ':title' => $title, ':message' => $message, ':type' => $type]);
+    } catch (Exception $e) {
+        error_log("Notification error: " . $e->getMessage());
+    }
+}
+
 // ============================================================
 // ROTEAMENTO
 // ============================================================
@@ -266,6 +321,13 @@ try {
             if (!validateEmail($email)) {
                 http_response_code(400);
                 jsonResponse(["error" => "E-mail inválido."]);
+            }
+
+            // Rate limiting: máximo 5 tentativas por IP a cada 15 minutos
+            $clientIp = getClientIp();
+            if (!checkRateLimit('login', $clientIp, 5, 900)) {
+                http_response_code(429);
+                jsonResponse(["error" => "Muitas tentativas de login. Aguarde 15 minutos e tente novamente."]);
             }
 
             $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
@@ -379,6 +441,13 @@ try {
             ]);
 
             auditLog($conn, $input['id'] ?? 'new', sanitizeString($input['storeName']), 'REGISTER', 'users');
+
+            // Notificar admins sobre novo cadastro pendente
+            $adminsStmt = $conn->query("SELECT id FROM users WHERE role = 'ADMIN'");
+            $admins = $adminsStmt->fetchAll();
+            foreach ($admins as $admin) {
+                createNotification($conn, $admin['id'], 'Novo Cadastro Pendente', sanitizeString($input['storeName']) . ' solicitou acesso ao sistema.', 'info');
+            }
 
             jsonResponse(["success" => true, "message" => "Cadastro enviado com sucesso."]);
             break;
@@ -511,11 +580,11 @@ try {
                 ':internalCode' => sanitizeString($input['internalCode'] ?? ''),
                 ':parallelCodes' => sanitizeString($input['parallelCodes'] ?? ''),
                 ':name' => sanitizeString($input['name'] ?? ''),
-                ':description' => $input['description'] ?? '',
+                ':description' => sanitizeString($input['description'] ?? ''),
                 ':manufacturer' => sanitizeString($input['manufacturer'] ?? ''),
                 ':vehicle' => sanitizeString($input['vehicle'] ?? ''),
                 ':compatibility_json' => $compatibilityJson,
-                ':application' => $input['application'] ?? '',
+                ':application' => sanitizeString($input['application'] ?? ''),
                 ':kitComponents' => sanitizeString($input['kitComponents'] ?? ''),
                 ':group_name' => $input['group'] ?? '',
                 ':position' => $input['position'] ?? '',
@@ -542,6 +611,14 @@ try {
             try {
                 ini_set('memory_limit', '256M');
                 set_time_limit(300);
+
+                // Lock para evitar importações simultâneas
+                $lockFile = __DIR__ . '/uploads/.bulk_import.lock';
+                if (file_exists($lockFile) && (time() - filemtime($lockFile)) < 300) {
+                    http_response_code(409);
+                    jsonResponse(["error" => "Outra importação está em andamento. Aguarde e tente novamente."]);
+                }
+                file_put_contents($lockFile, date('c') . ' - ' . ($authUser['storeName'] ?? ''));
 
                 $conn->beginTransaction();
 
@@ -602,6 +679,7 @@ try {
                 }
 
                 $conn->commit();
+                @unlink($lockFile); // Liberar lock
 
                 // Audit logs APÓS o commit (DDL dentro de transação causa erro)
                 if ($shouldClean && $countBefore > 0) {
@@ -616,6 +694,7 @@ try {
                 ]);
             } catch (Exception $e) {
                 try { $conn->rollBack(); } catch (Exception $rbEx) { /* transação já encerrada */ }
+                @unlink($lockFile); // Liberar lock em caso de erro
                 http_response_code(500);
                 echo json_encode(["error" => "Erro no upload em massa: " . $e->getMessage()]);
             }
@@ -705,6 +784,19 @@ try {
             $actionType = $isEditingSelf ? 'UPDATE_PROFILE' : 'UPDATE_USER';
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', $actionType, 'users', $input['id'], "Status: " . ($input['status'] ?? ''));
 
+            // Notificar usuário quando seu status muda (e não é ele mesmo editando)
+            if (!$isEditingSelf && !empty($input['status']) && !empty($input['id'])) {
+                $statusNotifMessages = [
+                    'APPROVED' => 'Sua conta foi aprovada! Agora você pode acessar o catálogo.',
+                    'REJECTED' => 'Sua solicitação de acesso foi recusada.',
+                    'INACTIVE' => 'Sua conta foi desativada.'
+                ];
+                if (isset($statusNotifMessages[$input['status']])) {
+                    $notifType = $input['status'] === 'APPROVED' ? 'success' : 'error';
+                    createNotification($conn, $input['id'], 'Atualização da Conta', $statusNotifMessages[$input['status']], $notifType);
+                }
+            }
+
             $input['permissions'] = $input['permissions'] ?? [];
             unset($input['password']); // Nunca retornar senha
             jsonResponse($input);
@@ -761,6 +853,13 @@ try {
 
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'CREATE_ORDER', 'orders', $input['id'], "Total: R$ " . number_format($input['total'] ?? 0, 2, ',', '.'));
 
+            // Notificar admins sobre novo pedido
+            $adminsStmt = $conn->query("SELECT id FROM users WHERE role = 'ADMIN'");
+            $admins = $adminsStmt->fetchAll();
+            foreach ($admins as $admin) {
+                createNotification($conn, $admin['id'], 'Novo Pedido Recebido', 'Pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' de ' . sanitizeString($input['userStoreName'] ?? '') . ' - R$ ' . number_format($input['total'] ?? 0, 2, ',', '.'), 'info');
+            }
+
             jsonResponse($input);
             break;
 
@@ -791,6 +890,28 @@ try {
             $getObj->execute([':id' => $input['id']]);
             $updated = $getObj->fetch();
             if($updated) $updated['items'] = json_decode($updated['items']);
+
+            // Notificar o dono do pedido sobre a mudança de status
+            if ($updated && !empty($updated['userId'])) {
+                $statusMessages = [
+                    'APPROVED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi aprovado!',
+                    'SHIPPED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi enviado!',
+                    'COMPLETED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi concluído.',
+                    'CANCELED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi cancelado.',
+                    'PENDING' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' está pendente.',
+                    'ANALYSIS' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' está em análise.',
+                ];
+                $statusTitles = [
+                    'APPROVED' => 'Pedido Aprovado',
+                    'SHIPPED' => 'Pedido Enviado',
+                    'COMPLETED' => 'Pedido Concluído',
+                    'CANCELED' => 'Pedido Cancelado',
+                    'PENDING' => 'Pedido Pendente',
+                    'ANALYSIS' => 'Pedido em Análise',
+                ];
+                $notifType = in_array($input['status'], ['APPROVED', 'SHIPPED', 'COMPLETED']) ? 'success' : ($input['status'] === 'CANCELED' ? 'error' : 'info');
+                createNotification($conn, $updated['userId'], $statusTitles[$input['status']] ?? 'Atualização de Pedido', $statusMessages[$input['status']] ?? 'Status atualizado.', $notifType);
+            }
 
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'UPDATE_ORDER_STATUS', 'orders', $input['id'], "Novo status: " . $input['status']);
 
@@ -1138,6 +1259,33 @@ try {
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'ADMIN_GENERATE_RESET', 'users', null, "Para: $email");
 
             jsonResponse(["success" => true, "token" => $token, "expiresAt" => $expiresAt]);
+            break;
+
+        // =========================================================
+        // NOTIFICAÇÕES
+        // =========================================================
+        case 'getNotifications':
+            $authUser = requireAuth();
+            $stmt = $conn->prepare("SELECT * FROM notifications WHERE userId = :userId ORDER BY createdAt DESC LIMIT 50");
+            $stmt->execute([':userId' => $authUser['userId']]);
+            jsonResponse($stmt->fetchAll());
+            break;
+
+        case 'markNotificationsRead':
+            $authUser = requireAuth();
+            $stmt = $conn->prepare("UPDATE notifications SET readAt = NOW() WHERE userId = :userId AND readAt IS NULL");
+            $stmt->execute([':userId' => $authUser['userId']]);
+            jsonResponse(["success" => true]);
+            break;
+
+        case 'markNotificationRead':
+            $authUser = requireAuth();
+            $id = $input['id'] ?? $_GET['id'] ?? '';
+            if (!empty($id)) {
+                $stmt = $conn->prepare("UPDATE notifications SET readAt = NOW() WHERE id = :id AND userId = :userId");
+                $stmt->execute([':id' => $id, ':userId' => $authUser['userId']]);
+            }
+            jsonResponse(["success" => true]);
             break;
 
         // =========================================================

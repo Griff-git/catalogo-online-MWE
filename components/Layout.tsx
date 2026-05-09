@@ -2,7 +2,7 @@
 import React, { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../App';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun, Bell } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { UserStatus, Role } from '../types';
@@ -52,6 +52,103 @@ const usePageTransition = () => {
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+// Componente de Notificações
+const NotificationBell: React.FC = () => {
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+  const { settings } = useContext(AppContext);
+
+  const unreadCount = notifications.filter(n => !n.readAt).length;
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      const data = await db.getNotifications();
+      setNotifications(data);
+    } catch (e) { /* silenciar */ }
+  }, []);
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000); // Verifica a cada 30s
+    return () => clearInterval(interval);
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleMarkAllRead = async () => {
+    await db.markNotificationsRead();
+    setNotifications(prev => prev.map(n => ({ ...n, readAt: new Date().toISOString() })));
+  };
+
+  const timeAgo = (date: string) => {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'agora';
+    if (mins < 60) return `${mins}min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
+  };
+
+  return (
+    <div ref={bellRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+      >
+        <Bell size={20} />
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[9px] font-black text-white rounded-full" style={{ backgroundColor: settings.primaryColor }}>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider">Notificações</h3>
+            {unreadCount > 0 && (
+              <button onClick={handleMarkAllRead} className="text-[10px] font-bold text-primary hover:underline" style={{ color: settings.primaryColor }}>
+                Marcar todas como lidas
+              </button>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+            {notifications.length === 0 ? (
+              <div className="py-8 text-center">
+                <Bell size={24} className="mx-auto text-gray-200 mb-2" />
+                <p className="text-xs text-gray-400 font-medium">Nenhuma notificação</p>
+              </div>
+            ) : (
+              notifications.slice(0, 20).map(n => (
+                <div key={n.id} className={`px-4 py-3 hover:bg-gray-50 transition-colors ${!n.readAt ? 'bg-blue-50/30' : ''}`}>
+                  <div className="flex items-start gap-2">
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.readAt ? 'bg-blue-500' : 'bg-transparent'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-900">{n.title}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
   const { logout, settings, user } = useContext(AppContext);
@@ -109,9 +206,12 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
           ) : (
             <span className="text-xl font-bold" style={{ color: settings.primaryColor }}>{settings.companyName.split(' ')[0]} Admin</span>
           )}
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400">
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:block"><NotificationBell /></div>
+            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400">
+              <X size={24} />
+            </button>
+          </div>
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
@@ -149,11 +249,14 @@ export const AdminLayout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:ml-64 min-h-screen w-full max-w-[100vw]">
         {/* Mobile Header for Sidebar Toggle */}
-        <header className="md:hidden bg-white h-16 border-b border-gray-200 flex items-center px-4 sticky top-0 z-30 shadow-sm">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-gray-600">
-            <Menu size={24} />
-          </button>
-          <span className="ml-3 font-bold text-gray-900">Menu</span>
+        <header className="md:hidden bg-white h-16 border-b border-gray-200 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center">
+            <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-gray-600">
+              <Menu size={24} />
+            </button>
+            <span className="ml-3 font-bold text-gray-900">Menu</span>
+          </div>
+          <NotificationBell />
         </header>
 
         <main className="flex-1 p-4 md:p-8 w-full">
@@ -235,6 +338,9 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
             >
               {isDark ? <Sun size={22} className="md:w-6 md:h-6 text-amber-400" /> : <Moon size={22} className="md:w-6 md:h-6" />}
             </button>
+
+            {/* Notificações */}
+            <NotificationBell />
 
             {/* Ícone do Carrinho */}
             <Link
