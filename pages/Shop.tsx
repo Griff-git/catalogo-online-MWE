@@ -7,7 +7,7 @@ import {
   MessageCircle, Mail, ExternalLink, ArrowLeft, ClipboardList, User as UserIcon, X, Filter, ChevronDown, PackageOpen, AlertCircle, Download, Percent
 } from 'lucide-react';
 import { db } from '../services/db';
-import { Product, CartItem, Order, OrderStatus, Role, ResellerClient, GROUPS, POSITIONS, MANUFACTURERS, getPaymentOptions, getInstallmentInfo } from '../types';
+import { Product, CartItem, Order, OrderStatus, Role, ResellerClient, POSITIONS, MANUFACTURERS, getPaymentOptions, getInstallmentInfo } from '../types';
 import { AppContext } from '../App';
 import { useNavigate, Link } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -173,6 +173,9 @@ export const Catalog: React.FC = () => {
     };
     loadProducts();
   }, []);
+
+  // Grupos dinâmicos extraídos dos produtos cadastrados
+  const availableGroups = [...new Set(products.map(p => p.group).filter(Boolean))].sort();
 
   const filtered = products.filter(p => {
     // Smart search: split query into words, ALL words must match somewhere
@@ -454,7 +457,7 @@ export const Catalog: React.FC = () => {
                 className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 px-3 md:px-4 font-bold text-sm text-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
               >
                 <option value="">Todos os Grupos</option>
-                {GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                {availableGroups.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
 
@@ -658,16 +661,16 @@ export const Catalog: React.FC = () => {
 
               <div className="space-y-2 mb-4">
                 <button
-                  onClick={() => setExportGroups(exportGroups.length === GROUPS.length ? [] : [...GROUPS])}
+                  onClick={() => setExportGroups(exportGroups.length === availableGroups.length ? [] : [...availableGroups])}
                   className="text-xs font-black uppercase tracking-widest hover:text-primary transition-colors"
-                  style={{ color: exportGroups.length === GROUPS.length ? settings.primaryColor : '#9ca3af' }}
+                  style={{ color: exportGroups.length === availableGroups.length ? settings.primaryColor : '#9ca3af' }}
                 >
-                  {exportGroups.length === GROUPS.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                  {exportGroups.length === availableGroups.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
                 </button>
               </div>
 
               <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-                {GROUPS.map(group => {
+                {availableGroups.map(group => {
                   const count = products.filter(p => p.group === group).length;
                   const isSelected = exportGroups.includes(group);
                   return (
