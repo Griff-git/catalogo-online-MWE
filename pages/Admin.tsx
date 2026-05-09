@@ -995,12 +995,12 @@ export const AdminProducts: React.FC = () => {
 
   const exportToExcel = () => {
     try {
-      const worksheet = XLSX.utils.json_to_sheet(products.map(p => {
+      const rows = [];
+      for (let i = 0; i < products.length; i++) {
+        const p = products[i];
         const img = p.images?.[0] || '';
-        const imageToExport = img.startsWith('data:') ? '[IMAGEM LOCAL / BASE64]' : img;
+        const imageToExport = img.startsWith('data:') ? '' : img;
 
-        // Format compatibility to string with years
-        // Group compatibility by manufacturer for cleaner export
         const compMap: Record<string, string[]> = {};
         (p.compatibility || []).forEach(c => {
           if (!compMap[c.manufacturer]) compMap[c.manufacturer] = [];
@@ -1012,14 +1012,15 @@ export const AdminProducts: React.FC = () => {
           .map(([m, vs]) => `${m}: ${vs.join(', ')}`)
           .join('; ');
 
-        return {
+        rows.push({
+          'ID (Não alterar)': p.id,
           'Código Interno': p.internalCode,
           'Conversão': p.parallelCodes,
           'Componentes do Kit': p.kitComponents,
           'Nome': p.name,
-          'Descrição': p.description,
-          'Compatibilidade': compatibilityStr, // Legacy: Montadora/Veículo removed
-          'Aplicação': p.application,
+          'Descrição': p.description || '',
+          'Compatibilidade': compatibilityStr,
+          'Aplicação': p.application || '',
           'Grupo': p.group,
           'Posição': p.position,
           'Preço': p.price,
@@ -1029,8 +1030,9 @@ export const AdminProducts: React.FC = () => {
           'Ativo': p.active ? 'Sim' : 'Não',
           'Marca': p.brand || '',
           'Imagem URL': imageToExport
-        };
-      }));
+        });
+      }
+      const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Produtos");
       XLSX.writeFile(workbook, "catalogo_produtos.xlsx");
@@ -1043,29 +1045,24 @@ export const AdminProducts: React.FC = () => {
 
   const downloadTemplate = () => {
     const template = [{
-      'internalCode': 'CÓDIGO-01',
-      'parallelCodes': '93300, 4423-B',
-      'kitComponents': 'COX-123 (Coxim), ROL-456 (Rolamento)',
-      'name': 'Nome da Peça',
-      'description': 'Breve descrição técnica',
-      'application': 'Veículo Ano Motor',
-      // 'manufacturer': 'Volkswagen', // Removido
-      // 'vehicle': 'Gol G5',          // Removido
-      'compatibility': 'Volkswagen: Gol G5(2010-2015); Ford: Fiesta(2014,2015,2016)', // Exemplo formato com anos
-      'group': 'Suspensão',
-      'position': 'Dianteiro Direito',
-      'price': 150.00,
-      'promo_price': 0.00,
-      'stock': 10,
-      'min_stock_display': 'Mais de 100', // Opcional
+      'Código Interno': 'CÓDIGO-01',
+      'Conversão': '93300, 4423-B',
+      'Componentes do Kit': 'COX-123 (Coxim), ROL-456 (Rolamento)',
+      'Nome': 'Nome da Peça',
+      'Descrição': 'Breve descrição técnica',
+      'Aplicação': 'Veículo Ano Motor',
+      'Compatibilidade': 'Volkswagen: Gol G5(2010-2015); Ford: Fiesta(2014,2015,2016)',
+      'Grupo': 'Suspensão',
+      'Posição': 'Dianteiro Direito',
+      'Preço': 150.00,
+      'Preço Promocional': 0.00,
+      'Estoque': 10,
+      'Texto Estoque': 'Mais de 100',
+      'Ativo': 'Sim',
+      'Marca': 'Cofap',
       'Imagem URL': 'https://link-da-imagem.com/foto.jpg'
     }];
     const worksheet = XLSX.utils.json_to_sheet(template);
-    // Rename headers to be user friendly (optional, but good for template)
-    XLSX.utils.sheet_add_aoa(worksheet, [[
-      "Código Interno", "Conversão", "Componentes do Kit", "Nome", "Descrição", "Aplicação",
-      "Compatibilidade", "Grupo", "Posição", "Preço", "Preço Promocional", "Estoque", "Texto Estoque", "Marca", "Imagem URL"
-    ]], { origin: "A1" });
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Modelo");
