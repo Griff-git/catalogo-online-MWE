@@ -2845,7 +2845,7 @@ export const AdminSettings: React.FC = () => {
   const [temp, setTemp] = useState<AppSettingsType>(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'visual' | 'institutional' | 'support' | 'social' | 'payments'>('visual');
+  const [settingsTab, setSettingsTab] = useState<'visual' | 'institutional' | 'support' | 'social' | 'payments' | 'security'>('visual');
   const [expandedPolicies, setExpandedPolicies] = useState<Record<number, boolean>>({});
 
   const handleSave = async () => {
@@ -2880,12 +2880,59 @@ export const AdminSettings: React.FC = () => {
 
   const inputClass = "w-full border-2 border-gray-50 bg-gray-50/50 p-4 rounded-2xl font-bold outline-none focus:bg-white focus:border-gray-100 transition-all";
 
+  // Estado para alteração de senha
+  const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!passwordForm.current || !passwordForm.newPass || !passwordForm.confirm) {
+      setPasswordError('Preencha todos os campos.');
+      return;
+    }
+    if (passwordForm.newPass.length < 6) {
+      setPasswordError('A nova senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+    if (passwordForm.newPass !== passwordForm.confirm) {
+      setPasswordError('A nova senha e a confirmação não coincidem.');
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      // Verificar senha atual fazendo login
+      const user = JSON.parse(localStorage.getItem('session_user') || '{}');
+      await db.login(user.email, passwordForm.current);
+
+      // Senha atual correta - atualizar para a nova
+      await db.saveUser({ ...user, password: passwordForm.newPass });
+
+      setPasswordSuccess('Senha alterada com sucesso!');
+      setPasswordForm({ current: '', newPass: '', confirm: '' });
+      setTimeout(() => setPasswordSuccess(''), 5000);
+    } catch (err: any) {
+      if (err.message?.includes('Senha incorreta') || err.message?.includes('incorreta')) {
+        setPasswordError('Senha atual incorreta.');
+      } else {
+        setPasswordError('Erro ao alterar senha. Tente novamente.');
+      }
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
+
   const tabs = [
     { id: 'visual' as const, label: 'Identidade Visual', icon: Palette },
     { id: 'institutional' as const, label: 'Institucional', icon: Globe },
     { id: 'support' as const, label: 'Atendimento', icon: MessageCircle },
     { id: 'social' as const, label: 'Redes Sociais', icon: Share2 },
     { id: 'payments' as const, label: 'Pagamentos', icon: DollarSign },
+    { id: 'security' as const, label: 'Segurança', icon: ShieldCheck },
   ];
 
   return (
@@ -3381,6 +3428,68 @@ export const AdminSettings: React.FC = () => {
             >
               <Plus size={16} /> Adicionar Nova Faixa de Valor
             </button>
+          </div>
+        )}
+
+        {settingsTab === 'security' && (
+          <div className="bg-white rounded-[1.25rem] border border-gray-100 shadow-sm p-8 md:p-10">
+            <SectionTitle icon={ShieldCheck} title="Alterar Senha" desc="Atualize sua senha de acesso ao painel" />
+
+            <div className="max-w-md space-y-5">
+              <div>
+                <InputLabel label="Senha Atual" />
+                <input
+                  type="password"
+                  className={inputClass}
+                  placeholder="Digite sua senha atual"
+                  value={passwordForm.current}
+                  onChange={e => setPasswordForm({ ...passwordForm, current: e.target.value })}
+                />
+              </div>
+              <div>
+                <InputLabel label="Nova Senha" />
+                <input
+                  type="password"
+                  className={inputClass}
+                  placeholder="Mínimo 6 caracteres"
+                  value={passwordForm.newPass}
+                  onChange={e => setPasswordForm({ ...passwordForm, newPass: e.target.value })}
+                />
+              </div>
+              <div>
+                <InputLabel label="Confirmar Nova Senha" />
+                <input
+                  type="password"
+                  className={inputClass}
+                  placeholder="Repita a nova senha"
+                  value={passwordForm.confirm}
+                  onChange={e => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                />
+              </div>
+
+              {passwordError && (
+                <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-xl">
+                  <AlertCircle size={16} />
+                  <p className="text-xs font-bold">{passwordError}</p>
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-3 rounded-xl">
+                  <CheckCircle2 size={16} />
+                  <p className="text-xs font-bold">{passwordSuccess}</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleChangePassword}
+                disabled={isSavingPassword}
+                className="px-8 py-4 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center gap-2"
+                style={{ backgroundColor: settings.primaryColor }}
+              >
+                {isSavingPassword ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+                {isSavingPassword ? 'Salvando...' : 'Alterar Senha'}
+              </button>
+            </div>
           </div>
         )}
 
