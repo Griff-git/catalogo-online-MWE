@@ -99,6 +99,19 @@ const NotificationBell: React.FC = () => {
     return `${days}d`;
   };
 
+  // Calcular posição do dropdown baseado no botão
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const updatePos = useCallback(() => {
+    if (bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 8, left: Math.max(8, rect.left) });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) updatePos();
+  }, [isOpen, updatePos]);
+
   return (
     <div ref={bellRef} className="relative">
       <button
@@ -113,8 +126,20 @@ const NotificationBell: React.FC = () => {
         )}
       </button>
 
-      {isOpen && (
-        <div className="absolute left-0 md:right-0 md:left-auto top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+      {isOpen && createPortal(
+        <div
+          className="fixed w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[9999] overflow-hidden"
+          style={{ top: dropdownPos.top, left: dropdownPos.left }}
+          ref={node => {
+            // Ajustar se sair da tela pela direita
+            if (node) {
+              const rect = node.getBoundingClientRect();
+              if (rect.right > window.innerWidth - 8) {
+                node.style.left = `${window.innerWidth - rect.width - 8}px`;
+              }
+            }
+          }}
+        >
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider">Notificações</h3>
             {unreadCount > 0 && (
@@ -144,7 +169,8 @@ const NotificationBell: React.FC = () => {
               ))
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
