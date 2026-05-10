@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import {
   Search, ShoppingCart, Info, CarFront, Tag, Package, Trash2,
   Minus, Plus, ChevronRight, FileText, Eye, CheckCircle2,
-  MessageCircle, Mail, ExternalLink, ArrowLeft, ClipboardList, User as UserIcon, X, Filter, ChevronDown, PackageOpen, AlertCircle, Download, Percent
+  MessageCircle, Mail, ExternalLink, ArrowLeft, ClipboardList, User as UserIcon, X, Filter, ChevronDown, PackageOpen, AlertCircle, Download, Percent, Copy, Check, Loader2
 } from 'lucide-react';
 import { db } from '../services/db';
 import { Product, CartItem, Order, OrderStatus, Role, ResellerClient, POSITIONS, MANUFACTURERS, getPaymentOptions, getInstallmentInfo } from '../types';
@@ -156,6 +156,7 @@ export const Catalog: React.FC = () => {
     dragRef.current = null;
   };
   const { addToCart, settings, user } = useContext(AppContext);
+  const [copyState, setCopyState] = useState<'idle' | 'copying' | 'done'>('idle');
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const itemsPerPage = 25;
@@ -748,12 +749,47 @@ export const Catalog: React.FC = () => {
             </div>
             {/* Modal Right Side */}
             <div className="w-full md:w-1/2 p-5 md:p-8 pt-3 md:pt-6 overflow-y-auto flex flex-col relative">
-              <button
-                onClick={closeProduct}
-                className="hidden md:flex absolute top-6 right-6 p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-900 transition-all hover:rotate-90 duration-300"
-              >
-                <X size={20} />
-              </button>
+              <div className="hidden md:flex absolute top-6 right-6 gap-2 z-10">
+                <button
+                  disabled={copyState !== 'idle'}
+                  onClick={async () => {
+                    const el = sheetRef.current;
+                    if (!el) return;
+                    setCopyState('copying');
+                    try {
+                      const html2canvas = (await import('html2canvas')).default;
+                      const canvas = await html2canvas(el, { useCORS: true, allowTaint: true, backgroundColor: '#ffffff', scale: 2 });
+                      canvas.toBlob(async (blob) => {
+                        if (blob) {
+                          try {
+                            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                            setCopyState('done');
+                            setTimeout(() => setCopyState('idle'), 2000);
+                          } catch {
+                            const link = document.createElement('a');
+                            link.download = `${selectedProduct.name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+                            link.href = canvas.toDataURL();
+                            link.click();
+                            setCopyState('idle');
+                          }
+                        }
+                      }, 'image/png');
+                    } catch {
+                      setCopyState('idle');
+                    }
+                  }}
+                  className={`p-2 rounded-full transition-all ${copyState === 'done' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-900'}`}
+                  title="Copiar imagem do produto"
+                >
+                  {copyState === 'copying' ? <Loader2 size={20} className="animate-spin" /> : copyState === 'done' ? <Check size={20} /> : <Copy size={20} />}
+                </button>
+                <button
+                  onClick={closeProduct}
+                  className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-900 transition-all hover:rotate-90 duration-300"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
               <div className="mt-2 md:mt-8">
                 <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 md:px-3 py-1 rounded-full">Disponível em Estoque</span>
