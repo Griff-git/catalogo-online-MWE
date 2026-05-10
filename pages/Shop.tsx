@@ -749,7 +749,7 @@ export const Catalog: React.FC = () => {
             </div>
             {/* Modal Right Side */}
             <div className="w-full md:w-1/2 p-5 md:p-8 pt-3 md:pt-6 overflow-y-auto flex flex-col relative">
-              <div className="hidden md:flex absolute top-6 right-6 gap-2 z-10">
+              <div className="hidden md:flex absolute top-6 right-6 gap-2 z-10" data-capture-hide>
                 <button
                   disabled={copyState !== 'idle'}
                   onClick={async () => {
@@ -757,8 +757,30 @@ export const Catalog: React.FC = () => {
                     if (!el) return;
                     setCopyState('copying');
                     try {
+                      // Esconder botões durante captura
+                      const btns = el.querySelector('[data-capture-hide]') as HTMLElement;
+                      if (btns) btns.style.display = 'none';
+                      // Forçar scroll ao topo para captura completa
+                      const scrollArea = el.querySelector('.overflow-y-auto') as HTMLElement;
+                      const prevScroll = scrollArea?.scrollTop || 0;
+                      if (scrollArea) scrollArea.scrollTop = 0;
+
+                      await new Promise(r => setTimeout(r, 100));
                       const html2canvas = (await import('html2canvas')).default;
-                      const canvas = await html2canvas(el, { useCORS: true, allowTaint: true, backgroundColor: '#ffffff', scale: 2 });
+                      const canvas = await html2canvas(el, {
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        scale: 2,
+                        logging: false,
+                        windowWidth: el.scrollWidth,
+                        windowHeight: el.scrollHeight
+                      });
+
+                      // Restaurar
+                      if (btns) btns.style.display = '';
+                      if (scrollArea) scrollArea.scrollTop = prevScroll;
+
                       canvas.toBlob(async (blob) => {
                         if (blob) {
                           try {
