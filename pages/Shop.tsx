@@ -788,8 +788,8 @@ export const Catalog: React.FC = () => {
                       const CodeTag = ({ code }: { code: string }) => {
                         const parts = code.split(':');
                         return (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px]">
-                            {parts.length > 1 ? (<><span className="font-black text-gray-500">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px]">
+                            {parts.length > 1 ? (<><span className="font-black text-gray-400">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
                           </span>
                         );
                       };
