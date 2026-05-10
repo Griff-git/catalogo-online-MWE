@@ -759,27 +759,26 @@ export const Catalog: React.FC = () => {
                     try {
                       // Esconder botões durante captura
                       const btns = el.querySelector('[data-capture-hide]') as HTMLElement;
-                      if (btns) btns.style.display = 'none';
-                      // Forçar scroll ao topo para captura completa
-                      const scrollArea = el.querySelector('.overflow-y-auto') as HTMLElement;
-                      const prevScroll = scrollArea?.scrollTop || 0;
-                      if (scrollArea) scrollArea.scrollTop = 0;
+                      if (btns) btns.style.opacity = '0';
 
-                      await new Promise(r => setTimeout(r, 100));
+                      await new Promise(r => setTimeout(r, 50));
                       const html2canvas = (await import('html2canvas')).default;
+                      const rect = el.getBoundingClientRect();
                       const canvas = await html2canvas(el, {
                         useCORS: true,
                         allowTaint: true,
                         backgroundColor: '#ffffff',
                         scale: 2,
                         logging: false,
-                        windowWidth: el.scrollWidth,
-                        windowHeight: el.scrollHeight
+                        width: rect.width,
+                        height: rect.height,
+                        x: 0,
+                        y: 0,
+                        scrollX: 0,
+                        scrollY: 0
                       });
 
-                      // Restaurar
-                      if (btns) btns.style.display = '';
-                      if (scrollArea) scrollArea.scrollTop = prevScroll;
+                      if (btns) btns.style.opacity = '';
 
                       canvas.toBlob(async (blob) => {
                         if (blob) {
