@@ -774,7 +774,7 @@ export const Catalog: React.FC = () => {
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{selectedProduct.brand ? 'Marca' : 'Grupo'}</p>
                     <p className="text-xs font-bold text-gray-700">{selectedProduct.brand || selectedProduct.group}</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex-1">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex-[2]">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Posição</p>
                     <p className="text-xs font-bold text-gray-700">{selectedProduct.position}</p>
                   </div>
