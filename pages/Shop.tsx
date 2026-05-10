@@ -780,66 +780,66 @@ export const Catalog: React.FC = () => {
                   </div>
                 </div>
 
-                {selectedProduct.parallelCodes && (() => {
-                  const codes = selectedProduct.parallelCodes.split(',').map(c => c.trim()).filter(Boolean);
-                  const maxVisible = 3;
-                  return (
-                    <div>
-                      <button
-                        onClick={() => {
-                          const el = document.getElementById('conv-expand');
-                          if (el) el.dataset.open = el.dataset.open === '1' ? '0' : '1';
-                          // force re-render via state workaround
-                          setQuantity(q => q);
-                        }}
-                        className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 hover:text-gray-600 transition-colors"
-                      >
-                        Conversão
-                        <span className="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 rounded-md text-gray-500">{codes.length}</span>
-                        <ChevronDown size={12} className="text-gray-400" />
-                      </button>
-                      <div className="flex flex-wrap gap-1.5">
-                        {codes.slice(0, maxVisible).map((code, i) => {
-                          const parts = code.split(':');
-                          return (
-                            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px]">
-                              {parts.length > 1 ? (<><span className="font-black text-gray-500">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
-                            </span>
-                          );
-                        })}
-                        {codes.length > maxVisible && (
-                          <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-gray-400 cursor-pointer hover:bg-slate-200 transition-colors"
+                {(selectedProduct.parallelCodes || selectedProduct.kitComponents) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedProduct.parallelCodes && (() => {
+                      const codes = selectedProduct.parallelCodes.split(',').map(c => c.trim()).filter(Boolean);
+                      const maxVisible = 3;
+                      const CodeTag = ({ code }: { code: string }) => {
+                        const parts = code.split(':');
+                        return (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px]">
+                            {parts.length > 1 ? (<><span className="font-black text-gray-500">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
+                          </span>
+                        );
+                      };
+                      return (
+                        <div>
+                          <button
                             onClick={() => {
                               const el = document.getElementById('conv-extra');
-                              if (el) el.classList.toggle('hidden');
+                              const btn = document.getElementById('conv-btn');
+                              if (el) { el.classList.toggle('hidden'); }
+                              if (btn) { btn.classList.toggle('hidden'); }
                             }}
+                            className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 hover:text-gray-600 transition-colors"
                           >
-                            +{codes.length - maxVisible} mais
-                          </span>
-                        )}
-                      </div>
-                      {codes.length > maxVisible && (
-                        <div id="conv-extra" className="hidden flex flex-wrap gap-1.5 mt-1.5">
-                          {codes.slice(maxVisible).map((code, i) => {
-                            const parts = code.split(':');
-                            return (
-                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px]">
-                                {parts.length > 1 ? (<><span className="font-black text-gray-500">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
+                            Conversão
+                            <span className="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 rounded-md text-gray-500">{codes.length}</span>
+                            {codes.length > maxVisible && <ChevronDown size={12} className="text-gray-400" />}
+                          </button>
+                          <div className="flex flex-wrap gap-1.5">
+                            {codes.slice(0, maxVisible).map((code, i) => <CodeTag key={i} code={code} />)}
+                            {codes.length > maxVisible && (
+                              <span id="conv-btn" className="inline-flex items-center px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-gray-400 cursor-pointer hover:bg-slate-200 transition-colors"
+                                onClick={() => {
+                                  const el = document.getElementById('conv-extra');
+                                  const btn = document.getElementById('conv-btn');
+                                  if (el) el.classList.remove('hidden');
+                                  if (btn) btn.classList.add('hidden');
+                                }}
+                              >
+                                +{codes.length - maxVisible}
                               </span>
-                            );
-                          })}
+                            )}
+                          </div>
+                          {codes.length > maxVisible && (
+                            <div id="conv-extra" className="hidden flex flex-wrap gap-1.5 mt-1.5">
+                              {codes.slice(maxVisible).map((code, i) => <CodeTag key={i} code={code} />)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                      );
+                    })()}
 
-                {selectedProduct.kitComponents && (
-                  <div>
-                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Componentes do Kit</p>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-xs font-bold text-gray-700 leading-relaxed">{selectedProduct.kitComponents}</p>
-                    </div>
+                    {selectedProduct.kitComponents && (
+                      <div>
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Componentes do Kit</p>
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                          <p className="text-xs font-bold text-gray-700 leading-relaxed">{selectedProduct.kitComponents}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
