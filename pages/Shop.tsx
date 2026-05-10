@@ -780,6 +780,27 @@ export const Catalog: React.FC = () => {
                   </div>
                 </div>
 
+                {selectedProduct.parallelCodes && (
+                  <div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Conversão</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedProduct.parallelCodes.split(',').map((code, i) => {
+                        const trimmed = code.trim();
+                        const parts = trimmed.split(':');
+                        return (
+                          <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px]">
+                            {parts.length > 1 ? (
+                              <><span className="font-black text-gray-500">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>
+                            ) : (
+                              <span className="font-bold text-gray-700">{trimmed}</span>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {selectedProduct.kitComponents && (
                   <div>
                     <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Componentes do Kit</p>
