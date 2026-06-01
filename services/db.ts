@@ -36,6 +36,7 @@ interface IDatabase {
   resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }>;
   getUsers(): Promise<User[]>;
   saveUser(user: User): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   getProducts(): Promise<Product[]>;
   saveProduct(product: Product): Promise<Product>;
   deleteProduct(id: string): Promise<void>;
@@ -135,6 +136,10 @@ class ApiDB implements IDatabase {
 
   async saveUser(user: User): Promise<User> {
     return this.request<User>('saveUser', 'POST', user);
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await this.request<void>('deleteUser', 'POST', { id });
   }
 
   // Products
@@ -425,6 +430,24 @@ class LocalDB implements IDatabase {
       users.push(admin);
       this.setStorage('users', users);
     }
+
+    if (!users.find(u => u.email === 'revendedor@teste.com')) {
+      const reseller: User = {
+        id: 'reseller-1',
+        storeName: 'Revendedor Teste',
+        responsibleName: 'Revendedor',
+        cnpj: '11.111.111/0001-11',
+        phone: '(11) 98888-8888',
+        email: 'revendedor@teste.com',
+        password: 'teste123',
+        role: Role.RESELLER,
+        permissions: ['catalog'],
+        status: UserStatus.APPROVED,
+        createdAt: new Date().toISOString()
+      };
+      users.push(reseller);
+      this.setStorage('users', users);
+    }
     return users;
   }
 
@@ -438,6 +461,13 @@ class LocalDB implements IDatabase {
     }
     this.setStorage('users', users);
     return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    const users = await this.getUsers();
+    this.setStorage('users', users.filter(u => u.id !== id));
+    const orders = await this.getOrders();
+    this.setStorage('orders', orders.filter(o => o.userId !== id));
   }
 
   async getProducts(): Promise<Product[]> {
@@ -563,9 +593,38 @@ class LocalDB implements IDatabase {
     return { success: true, token: 'dev_reset_' + Date.now(), expiresAt: new Date(Date.now() + 86400000).toISOString() };
   }
 
-  async getNotifications(): Promise<any[]> { return []; }
-  async markNotificationsRead(): Promise<{ success: boolean }> { return { success: true }; }
-  async markNotificationRead(_id: number): Promise<{ success: boolean }> { return { success: true }; }
+  async getNotifications(): Promise<any[]> {
+    let notifs = this.getStorage<any[]>('notifications', []);
+    // Recriar se vazio ou se são notificações antigas sem campo link
+    if (notifs.length === 0 || (notifs.length > 0 && !('link' in notifs[0]))) {
+      const now = Date.now();
+      notifs = [
+        { id: 1, title: 'Novo Cadastro Pendente', message: 'Auto Peças Silva solicitou acesso ao sistema.', type: 'info', readAt: null, createdAt: new Date(now - 5 * 60000).toISOString(), link: '#/admin/usuarios' },
+        { id: 2, title: 'Novo Pedido Recebido', message: 'Pedido #CDA4EA8B de Revendedor Teste - R$ 41,40', type: 'info', readAt: null, createdAt: new Date(now - 30 * 60000).toISOString(), link: '#/admin/pedidos' },
+        { id: 3, title: 'Pedido Aprovado', message: 'Seu pedido #2E1B9F03 foi aprovado!', type: 'success', readAt: null, createdAt: new Date(now - 2 * 3600000).toISOString(), link: '#/pedidos' },
+        { id: 4, title: 'Novo Pedido Recebido', message: 'Pedido #39F7A21C de Auto Center Souza - R$ 237,80', type: 'info', readAt: null, createdAt: new Date(now - 5 * 3600000).toISOString(), link: '#/admin/pedidos' },
+        { id: 5, title: 'Pedido Enviado', message: 'Seu pedido #A8C3E012 foi enviado!', type: 'success', readAt: new Date(now - 8 * 3600000).toISOString(), createdAt: new Date(now - 24 * 3600000).toISOString(), link: '#/pedidos' },
+        { id: 6, title: 'Atualização da Conta', message: 'Sua conta foi aprovada! Agora você pode acessar o catálogo.', type: 'success', readAt: new Date(now - 26 * 3600000).toISOString(), createdAt: new Date(now - 26 * 3600000).toISOString(), link: '#/catalogo' },
+        { id: 7, title: 'Pedido Cancelado', message: 'Seu pedido #F1D2B340 foi cancelado.', type: 'error', readAt: new Date(now - 50 * 3600000).toISOString(), createdAt: new Date(now - 50 * 3600000).toISOString(), link: '#/pedidos' },
+        { id: 8, title: 'Novo Cadastro Pendente', message: 'Distribuidora Central LTDA solicitou acesso ao sistema.', type: 'info', readAt: new Date(now - 72 * 3600000).toISOString(), createdAt: new Date(now - 72 * 3600000).toISOString(), link: '#/admin/usuarios' },
+      ];
+      this.setStorage('notifications', notifs);
+    }
+    return notifs;
+  }
+
+  async markNotificationsRead(): Promise<{ success: boolean }> {
+    const notifs = this.getStorage<any[]>('notifications', []);
+    const now = new Date().toISOString();
+    this.setStorage('notifications', notifs.map(n => n.readAt ? n : { ...n, readAt: now }));
+    return { success: true };
+  }
+
+  async markNotificationRead(id: number): Promise<{ success: boolean }> {
+    const notifs = this.getStorage<any[]>('notifications', []);
+    this.setStorage('notifications', notifs.map(n => n.id === id ? { ...n, readAt: new Date().toISOString() } : n));
+    return { success: true };
+  }
   async getBrands(): Promise<any[]> { return this.getStorage('brands', []); }
   async saveBrand(brand: any): Promise<any> {
     const all = this.getStorage<any[]>('brands', []);

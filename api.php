@@ -299,10 +299,13 @@ $conn->exec("CREATE TABLE IF NOT EXISTS notifications (
     INDEX idx_notif_read (readAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-function createNotification($conn, $userId, $title, $message, $type = 'info') {
+// Adicionar coluna link se não existir
+try { $conn->exec("ALTER TABLE notifications ADD COLUMN link VARCHAR(500) DEFAULT NULL"); } catch (Exception $e) {}
+
+function createNotification($conn, $userId, $title, $message, $type = 'info', $link = null) {
     try {
-        $stmt = $conn->prepare("INSERT INTO notifications (userId, title, message, type) VALUES (:userId, :title, :message, :type)");
-        $stmt->execute([':userId' => $userId, ':title' => $title, ':message' => $message, ':type' => $type]);
+        $stmt = $conn->prepare("INSERT INTO notifications (userId, title, message, type, link) VALUES (:userId, :title, :message, :type, :link)");
+        $stmt->execute([':userId' => $userId, ':title' => $title, ':message' => $message, ':type' => $type, ':link' => $link]);
     } catch (Exception $e) {
         error_log("Notification error: " . $e->getMessage());
     }
@@ -455,7 +458,7 @@ try {
             $adminsStmt = $conn->query("SELECT id FROM users WHERE role = 'ADMIN'");
             $admins = $adminsStmt->fetchAll();
             foreach ($admins as $admin) {
-                createNotification($conn, $admin['id'], 'Novo Cadastro Pendente', sanitizeString($input['storeName']) . ' solicitou acesso ao sistema.', 'info');
+                createNotification($conn, $admin['id'], 'Novo Cadastro Pendente', sanitizeString($input['storeName']) . ' solicitou acesso ao sistema.', 'info', '#/admin/usuarios?open=' . $input['id']);
             }
 
             jsonResponse(["success" => true, "message" => "Cadastro enviado com sucesso."]);
@@ -804,7 +807,8 @@ try {
                 ];
                 if (isset($statusNotifMessages[$input['status']])) {
                     $notifType = $input['status'] === 'APPROVED' ? 'success' : 'error';
-                    createNotification($conn, $input['id'], 'Atualização da Conta', $statusNotifMessages[$input['status']], $notifType);
+                    $accountLink = $input['status'] === 'APPROVED' ? '#/catalogo' : null;
+                    createNotification($conn, $input['id'], 'Atualização da Conta', $statusNotifMessages[$input['status']], $notifType, $accountLink);
                 }
             }
 
@@ -868,7 +872,7 @@ try {
             $adminsStmt = $conn->query("SELECT id FROM users WHERE role = 'ADMIN'");
             $admins = $adminsStmt->fetchAll();
             foreach ($admins as $admin) {
-                createNotification($conn, $admin['id'], 'Novo Pedido Recebido', 'Pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' de ' . sanitizeString($input['userStoreName'] ?? '') . ' - R$ ' . number_format($input['total'] ?? 0, 2, ',', '.'), 'info');
+                createNotification($conn, $admin['id'], 'Novo Pedido Recebido', 'Pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' de ' . sanitizeString($input['userStoreName'] ?? '') . ' - R$ ' . number_format($input['total'] ?? 0, 2, ',', '.'), 'info', '#/admin/pedidos?open=' . $input['id']);
             }
 
             jsonResponse($input);
@@ -877,10 +881,28 @@ try {
         case 'updateOrder':
             $authUser = requireAuth();
 
-            // Apenas admin pode alterar status
-            if ($authUser['role'] !== 'ADMIN' && !in_array('admin_panel', $authUser['permissions'] ?? [])) {
+            // Verificar permissão: admin pode alterar qualquer pedido, revendedor pode aprovar seus próprios
+            $isAdmin = $authUser['role'] === 'ADMIN' || in_array('admin_panel', $authUser['permissions'] ?? []);
+            $isResellerApproving = $authUser['role'] === 'RESELLER' && ($input['status'] ?? '') === 'APPROVED';
+
+            if (!$isAdmin && !$isResellerApproving) {
                 http_response_code(403);
                 jsonResponse(["error" => "Sem permissão para alterar pedidos."]);
+            }
+
+            // Se for revendedor, verificar se o pedido pertence a ele e está em análise
+            if ($isResellerApproving && !$isAdmin) {
+                $checkStmt = $conn->prepare("SELECT userId, status FROM orders WHERE id = :id");
+                $checkStmt->execute([':id' => $input['id']]);
+                $orderCheck = $checkStmt->fetch();
+                if (!$orderCheck || $orderCheck['userId'] !== $authUser['userId']) {
+                    http_response_code(403);
+                    jsonResponse(["error" => "Você só pode aprovar seus próprios pedidos."]);
+                }
+                if ($orderCheck['status'] !== 'ANALYSIS') {
+                    http_response_code(400);
+                    jsonResponse(["error" => "Apenas pedidos em análise podem ser aprovados."]);
+                }
             }
 
             if (empty($input['id']) || empty($input['status'])) {
@@ -921,7 +943,7 @@ try {
                     'ANALYSIS' => 'Pedido em Análise',
                 ];
                 $notifType = in_array($input['status'], ['APPROVED', 'SHIPPED', 'COMPLETED']) ? 'success' : ($input['status'] === 'CANCELED' ? 'error' : 'info');
-                createNotification($conn, $updated['userId'], $statusTitles[$input['status']] ?? 'Atualização de Pedido', $statusMessages[$input['status']] ?? 'Status atualizado.', $notifType);
+                createNotification($conn, $updated['userId'], $statusTitles[$input['status']] ?? 'Atualização de Pedido', $statusMessages[$input['status']] ?? 'Status atualizado.', $notifType, '#/pedidos?open=' . $input['id']);
             }
 
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'UPDATE_ORDER_STATUS', 'orders', $input['id'], "Novo status: " . $input['status']);
@@ -942,6 +964,35 @@ try {
             $stmt = $conn->prepare("DELETE FROM orders WHERE id = :id");
             $stmt->execute([':id' => $input['id']]);
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'DELETE_ORDER', 'orders', $input['id']);
+            jsonResponse(["success" => true]);
+            break;
+
+        case 'deleteUser':
+            $authUser = requireAuth();
+            if ($authUser['role'] !== 'ADMIN') {
+                http_response_code(403);
+                jsonResponse(["error" => "Sem permissão."]);
+            }
+            if (empty($input['id'])) {
+                http_response_code(400);
+                jsonResponse(["error" => "ID obrigatório."]);
+            }
+            if ($input['id'] === $authUser['userId']) {
+                http_response_code(400);
+                jsonResponse(["error" => "Você não pode excluir sua própria conta."]);
+            }
+            // Buscar dados do usuário antes de excluir (para audit log)
+            $delUserStmt = $conn->prepare("SELECT storeName, email FROM users WHERE id = :id");
+            $delUserStmt->execute([':id' => $input['id']]);
+            $delUserData = $delUserStmt->fetch();
+            // Excluir dados relacionados
+            $conn->prepare("DELETE FROM orders WHERE userId = :id")->execute([':id' => $input['id']]);
+            $conn->prepare("DELETE FROM notifications WHERE userId = :id")->execute([':id' => $input['id']]);
+            $conn->prepare("DELETE FROM reseller_clients WHERE resellerId = :id")->execute([':id' => $input['id']]);
+            $conn->prepare("DELETE FROM audit_logs WHERE userId = :id")->execute([':id' => $input['id']]);
+            // Excluir o usuário
+            $conn->prepare("DELETE FROM users WHERE id = :id")->execute([':id' => $input['id']]);
+            auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'DELETE_USER', 'users', $input['id'], "Usuário excluído: " . ($delUserData['storeName'] ?? '') . " (" . ($delUserData['email'] ?? '') . ")");
             jsonResponse(["success" => true]);
             break;
 

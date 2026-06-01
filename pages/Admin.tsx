@@ -260,7 +260,7 @@ const OrderDetailsModal: React.FC<{
   );
 };
 
-const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpdate: (s: UserStatus) => void; onRoleUpdate?: (newRole: Role) => void; onPermissionToggle?: (permission: string) => void; zIndex?: number }> = ({ user, onClose, onStatusUpdate, onRoleUpdate, onPermissionToggle, zIndex = 120 }) => {
+const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpdate: (s: UserStatus) => void; onRoleUpdate?: (newRole: Role) => void; onPermissionToggle?: (permission: string) => void; onDelete?: () => void; zIndex?: number }> = ({ user, onClose, onStatusUpdate, onRoleUpdate, onPermissionToggle, onDelete, zIndex = 120 }) => {
   const { settings } = useContext(AppContext);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
@@ -445,6 +445,19 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
                 }`}>
                   {user.permissions?.includes('admin_panel') ? 'Ativo' : 'Inativo'}
                 </span>
+              </button>
+            )}
+
+            {onDelete && user.role !== Role.ADMIN && (
+              <button
+                onClick={() => {
+                  if (confirm(`Tem certeza que deseja EXCLUIR permanentemente o usuário "${user.storeName}"?\n\nTodos os dados serão removidos (pedidos, notificações, clientes vinculados).\n\nEsta ação NÃO pode ser desfeita.`)) {
+                    onDelete();
+                  }
+                }}
+                className="w-full py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all flex items-center justify-center gap-2"
+              >
+                <Trash2 size={15} /> Excluir Usuário Permanentemente
               </button>
             )}
 
@@ -1935,6 +1948,12 @@ export const AdminOrders: React.FC = () => {
     const data = await db.getOrders();
     setOrders(data);
     setLoadingOrders(false);
+    // Auto-abrir pedido via ?open=ID
+    const openId = searchParams.get('open');
+    if (openId) {
+      const target = data.find(o => o.id === openId);
+      if (target) setSelected(target);
+    }
   };
 
   useEffect(() => {
@@ -2402,8 +2421,15 @@ export const AdminUsers: React.FC = () => {
 
   const load = async () => {
     const data = await db.getUsers();
-    setUsers(data.filter(u => u.role !== Role.ADMIN));
+    const filtered = data.filter(u => u.role !== Role.ADMIN);
+    setUsers(filtered);
     setLoadingUsers(false);
+    // Auto-abrir usuário via ?open=ID
+    const openId = searchParams.get('open');
+    if (openId) {
+      const target = filtered.find(u => u.id === openId);
+      if (target) setSelectedUser(target);
+    }
   };
 
   useEffect(() => {
@@ -2437,6 +2463,16 @@ export const AdminUsers: React.FC = () => {
     await db.saveUser(updated);
     load();
     if (selectedUser?.id === u.id) setSelectedUser(updated);
+  };
+
+  const handleDeleteUser = async (u: User) => {
+    try {
+      await db.deleteUser(u.id);
+      setSelectedUser(null);
+      load();
+    } catch (err: any) {
+      alert(err?.message || 'Erro ao excluir usuário.');
+    }
   };
 
   const handleCreateReseller = async () => {
@@ -2481,7 +2517,9 @@ export const AdminUsers: React.FC = () => {
     const matchesRole = roleFilter === 'ALL' ? true : u.role === roleFilter;
     const q = normalize(searchQuery);
     const matchesSearch = normalize(u.storeName).includes(q) ||
+      normalize(u.responsibleName || '').includes(q) ||
       normalize(u.cnpj).includes(q) ||
+      normalize(u.phone || '').includes(q) ||
       normalize(u.email).includes(q);
     return matchesFilter && matchesRole && matchesSearch;
   });
@@ -2557,7 +2595,7 @@ export const AdminUsers: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Buscar por loja, CNPJ ou e-mail..."
+              placeholder="Buscar por loja, responsável, CNPJ, telefone ou e-mail..."
               className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 font-bold transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -2697,6 +2735,7 @@ export const AdminUsers: React.FC = () => {
           onStatusUpdate={(s) => handleStatusUpdate(selectedUser, s)}
           onRoleUpdate={(newRole) => handleRoleUpdate(selectedUser, newRole)}
           onPermissionToggle={(perm) => handlePermissionToggle(selectedUser, perm)}
+          onDelete={() => handleDeleteUser(selectedUser)}
         />
       )}
 

@@ -9,7 +9,7 @@ import {
 import { db } from '../services/db';
 import { Product, CartItem, Order, OrderStatus, Role, ResellerClient, POSITIONS, MANUFACTURERS, getPaymentOptions, getInstallmentInfo } from '../types';
 import { AppContext } from '../App';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -38,8 +38,8 @@ const ProductCard: React.FC<{ product: Product, onClick: () => void, brandLogo?:
     >
       {/* Brand logo - canto superior esquerdo */}
       {brandLogo && (
-        <div className="absolute top-3 left-3 z-20 bg-white rounded-lg shadow-md border border-gray-100 p-1.5">
-          <img src={brandLogo} alt={product.brand || ''} className="h-6 w-auto max-w-[60px] object-contain" />
+        <div className="absolute top-3 left-3 z-20 bg-white rounded-lg shadow-md border border-gray-100 p-1.5" onContextMenu={(e) => e.preventDefault()}>
+          <img src={brandLogo} alt={product.brand || ''} className="h-6 w-auto max-w-[60px] object-contain select-none pointer-events-none" draggable={false} />
         </div>
       )}
 
@@ -56,12 +56,13 @@ const ProductCard: React.FC<{ product: Product, onClick: () => void, brandLogo?:
         )}
       </div>
 
-      <div className="relative aspect-square mb-4 bg-gray-50 rounded-2xl overflow-hidden">
+      <div className="relative aspect-square mb-4 bg-gray-50 rounded-2xl overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
         {product.images.length > 0 ? (
           <img
             src={product.images[0]}
-            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700 select-none pointer-events-none"
             alt={product.name}
+            draggable={false}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -413,11 +414,12 @@ export const Catalog: React.FC = () => {
     <div className="space-y-4 md:space-y-8 animate-in fade-in duration-500 pb-4 md:pb-10">
       {/* Promotional Banner */}
       {settings.promoBannerUrl && !bannerDismissed && (
-        <div className="relative rounded-2xl md:rounded-[1.25rem] overflow-hidden shadow-lg border border-gray-100 animate-in slide-in-from-top-4 duration-500">
+        <div className="relative rounded-2xl md:rounded-[1.25rem] overflow-hidden shadow-lg border border-gray-100 animate-in slide-in-from-top-4 duration-500" onContextMenu={(e) => e.preventDefault()}>
           <img
             src={settings.promoBannerUrl}
             alt="Promoção"
-            className="w-full h-auto object-cover max-h-[200px] md:max-h-[320px]"
+            className="w-full h-auto object-cover max-h-[200px] md:max-h-[320px] select-none pointer-events-none"
+            draggable={false}
           />
           <button
             onClick={dismissBanner}
@@ -819,86 +821,100 @@ export const Catalog: React.FC = () => {
               </div>
 
               <div className="mt-6 space-y-6">
-                <div>
-                  <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Aplicação</p>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-sm font-bold text-gray-700 leading-relaxed">{selectedProduct.application}</p>
+                {selectedProduct.application && (
+                  <div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Aplicação</p>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-sm font-bold text-gray-700 leading-relaxed">{selectedProduct.application}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="flex gap-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex-[3]">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{selectedProduct.brand ? 'Marca' : 'Grupo'}</p>
-                    <p className="text-xs font-bold text-gray-700">{selectedProduct.brand || selectedProduct.group}</p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex-[2]">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Posição</p>
-                    <p className="text-xs font-bold text-gray-700">{selectedProduct.position}</p>
-                  </div>
-                </div>
-
-                {(selectedProduct.parallelCodes || selectedProduct.kitComponents) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedProduct.parallelCodes && (() => {
-                      const codes = selectedProduct.parallelCodes.split(',').map(c => c.trim()).filter(Boolean);
-                      const maxVisible = 3;
-                      const CodeTag = ({ code }: { code: string }) => {
-                        const parts = code.split(':');
-                        return (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px]">
-                            {parts.length > 1 ? (<><span className="font-black text-gray-400">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
-                          </span>
-                        );
-                      };
-                      return (
-                        <div>
-                          <button
-                            onClick={() => {
-                              const el = document.getElementById('conv-extra');
-                              const btn = document.getElementById('conv-btn');
-                              if (el) { el.classList.toggle('hidden'); }
-                              if (btn) { btn.classList.toggle('hidden'); }
-                            }}
-                            className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 hover:text-gray-600 transition-colors"
-                          >
-                            Conversão
-                            <span className="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 rounded-md text-gray-500">{codes.length}</span>
-                            {codes.length > maxVisible && <ChevronDown size={12} className="text-gray-400" />}
-                          </button>
-                          <div className="flex flex-wrap gap-1.5">
-                            {codes.slice(0, maxVisible).map((code, i) => <CodeTag key={i} code={code} />)}
-                            {codes.length > maxVisible && (
-                              <span id="conv-btn" className="inline-flex items-center px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-gray-400 cursor-pointer hover:bg-slate-200 transition-colors"
-                                onClick={() => {
-                                  const el = document.getElementById('conv-extra');
-                                  const btn = document.getElementById('conv-btn');
-                                  if (el) el.classList.remove('hidden');
-                                  if (btn) btn.classList.add('hidden');
-                                }}
-                              >
-                                +{codes.length - maxVisible}
-                              </span>
-                            )}
-                          </div>
-                          {codes.length > maxVisible && (
-                            <div id="conv-extra" className="hidden flex flex-wrap gap-1.5 mt-1.5">
-                              {codes.slice(maxVisible).map((code, i) => <CodeTag key={i} code={code} />)}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                    {selectedProduct.kitComponents && (
-                      <div>
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Componentes do Kit</p>
-                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                          <p className="text-xs font-bold text-gray-700 leading-relaxed">{selectedProduct.kitComponents}</p>
-                        </div>
+                {((selectedProduct.brand || selectedProduct.group) || selectedProduct.position) && (
+                  <div className="flex gap-4">
+                    {(selectedProduct.brand || selectedProduct.group) && (
+                      <div className={`p-4 bg-slate-50 rounded-2xl border border-slate-100 ${selectedProduct.position ? 'flex-[3]' : 'flex-1'}`}>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{selectedProduct.brand ? 'Marca' : 'Grupo'}</p>
+                        <p className="text-xs font-bold text-gray-700">{selectedProduct.brand || selectedProduct.group}</p>
+                      </div>
+                    )}
+                    {selectedProduct.position && (
+                      <div className={`p-4 bg-slate-50 rounded-2xl border border-slate-100 ${(selectedProduct.brand || selectedProduct.group) ? 'flex-[2]' : 'flex-1'}`}>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Posição</p>
+                        <p className="text-xs font-bold text-gray-700">{selectedProduct.position}</p>
                       </div>
                     )}
                   </div>
                 )}
+
+                {(() => {
+                  const hasParallelCodes = !!selectedProduct.parallelCodes;
+                  const hasKitComponents = !!selectedProduct.kitComponents;
+                  if (!hasParallelCodes && !hasKitComponents) return null;
+                  const bothPresent = hasParallelCodes && hasKitComponents;
+                  return (
+                    <div className={bothPresent ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : ''}>
+                      {hasParallelCodes && (() => {
+                        const codes = selectedProduct.parallelCodes.split(',').map(c => c.trim()).filter(Boolean);
+                        const maxVisible = 3;
+                        const CodeTag = ({ code }: { code: string }) => {
+                          const parts = code.split(':');
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[10px]">
+                              {parts.length > 1 ? (<><span className="font-black text-gray-400">{parts[0].trim()}</span><span className="font-bold text-gray-700">{parts[1].trim()}</span></>) : (<span className="font-bold text-gray-700">{code}</span>)}
+                            </span>
+                          );
+                        };
+                        return (
+                          <div>
+                            <button
+                              onClick={() => {
+                                const el = document.getElementById('conv-extra');
+                                const btn = document.getElementById('conv-btn');
+                                if (el) { el.classList.toggle('hidden'); }
+                                if (btn) { btn.classList.toggle('hidden'); }
+                              }}
+                              className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2 hover:text-gray-600 transition-colors"
+                            >
+                              Conversão
+                              <span className="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 rounded-md text-gray-500">{codes.length}</span>
+                              {codes.length > maxVisible && <ChevronDown size={12} className="text-gray-400" />}
+                            </button>
+                            <div className="flex flex-wrap gap-1.5">
+                              {codes.slice(0, maxVisible).map((code, i) => <CodeTag key={i} code={code} />)}
+                              {codes.length > maxVisible && (
+                                <span id="conv-btn" className="inline-flex items-center px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-black text-gray-400 cursor-pointer hover:bg-slate-200 transition-colors"
+                                  onClick={() => {
+                                    const el = document.getElementById('conv-extra');
+                                    const btn = document.getElementById('conv-btn');
+                                    if (el) el.classList.remove('hidden');
+                                    if (btn) btn.classList.add('hidden');
+                                  }}
+                                >
+                                  +{codes.length - maxVisible}
+                                </span>
+                              )}
+                            </div>
+                            {codes.length > maxVisible && (
+                              <div id="conv-extra" className="hidden flex flex-wrap gap-1.5 mt-1.5">
+                                {codes.slice(maxVisible).map((code, i) => <CodeTag key={i} code={code} />)}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      {hasKitComponents && (
+                        <div>
+                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Componentes do Kit</p>
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p className="text-xs font-bold text-gray-700 leading-relaxed">{selectedProduct.kitComponents}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="mt-auto pt-6 md:pt-10">
@@ -1403,6 +1419,7 @@ export const MyOrders: React.FC = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // ESC to close + body scroll lock for order detail modal
   useEffect(() => {
@@ -1420,8 +1437,15 @@ export const MyOrders: React.FC = () => {
     const loadOrders = async () => {
       if (user) {
         const data = await db.getOrders();
-        setOrders(data.filter(o => o.userId === user.id));
+        const myOrders = data.filter(o => o.userId === user.id);
+        setOrders(myOrders);
         setLoadingOrders(false);
+        // Auto-abrir pedido via ?open=ID
+        const openId = searchParams.get('open');
+        if (openId) {
+          const target = myOrders.find(o => o.id === openId);
+          if (target) setSelectedOrder(target);
+        }
       }
     };
     loadOrders();
@@ -1451,10 +1475,15 @@ export const MyOrders: React.FC = () => {
   };
 
   const handleOrderStatus = async (order: Order, newStatus: OrderStatus) => {
-    const updated = { ...order, status: newStatus };
-    await db.updateOrder(updated);
-    setOrders(prev => prev.map(o => o.id === order.id ? updated : o));
-    if (selectedOrder?.id === order.id) setSelectedOrder(updated);
+    try {
+      const updated = { ...order, status: newStatus };
+      await db.updateOrder(updated);
+      setOrders(prev => prev.map(o => o.id === order.id ? updated : o));
+      if (selectedOrder?.id === order.id) setSelectedOrder(updated);
+      alert(newStatus === 'APPROVED' ? 'Pedido aprovado com sucesso!' : 'Status do pedido atualizado.');
+    } catch (err: any) {
+      alert(err?.message || 'Erro ao atualizar o pedido. Tente novamente.');
+    }
   };
 
   const generatePDF = async (order: Order) => {
@@ -1795,11 +1824,12 @@ export const MyOrders: React.FC = () => {
                 {selectedOrder.items.map((item: any, i: number) => (
                   <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
                     {/* Thumbnail */}
-                    <div className="w-14 h-14 rounded-xl bg-white border border-gray-100 overflow-hidden flex-shrink-0">
+                    <div className="w-14 h-14 rounded-xl bg-white border border-gray-100 overflow-hidden flex-shrink-0" onContextMenu={(e) => e.preventDefault()}>
                       <img
                         src={item.image || 'https://placehold.co/100x100/f1f5f9/94a3b8?text=...'}
                         alt=""
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover select-none pointer-events-none"
+                        draggable={false}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -2283,8 +2313,8 @@ export const MyClients: React.FC = () => {
                       <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
-                              <img src={item.image || 'https://placehold.co/80x80/f8fafc/94a3b8?text=...'} alt="" className="w-full h-full object-cover" />
+                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0" onContextMenu={(e) => e.preventDefault()}>
+                              <img src={item.image || 'https://placehold.co/80x80/f8fafc/94a3b8?text=...'} alt="" className="w-full h-full object-cover select-none pointer-events-none" draggable={false} />
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-bold text-gray-900 truncate max-w-[280px]">{item.name || item.productName}</p>

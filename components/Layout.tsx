@@ -2,7 +2,7 @@
 import React, { useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { AppContext } from '../App';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun, Bell, Tag } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Package, Settings, ShoppingCart, User, ChevronDown, ClipboardList, UserCircle, Instagram, Linkedin, MessageCircle, Mail, Phone, Facebook, Youtube, Play, Menu, X, Globe, Store, Shield, Briefcase, Moon, Sun, Bell, Tag, CheckCircle2, AlertCircle, Info, Check, BellOff } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { db } from '../services/db';
 import { UserStatus, Role } from '../types';
@@ -57,8 +57,11 @@ interface LayoutProps {
 const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const bellRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { settings } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const unreadCount = notifications.filter(n => !n.readAt).length;
 
@@ -71,13 +74,16 @@ const NotificationBell: React.FC = () => {
 
   useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 30000); // Verifica a cada 30s
+    const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
   }, [loadNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setIsOpen(false);
+      const target = e.target as Node;
+      if (bellRef.current && !bellRef.current.contains(target) && dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -88,15 +94,48 @@ const NotificationBell: React.FC = () => {
     setNotifications(prev => prev.map(n => ({ ...n, readAt: new Date().toISOString() })));
   };
 
+  const handleMarkOneRead = async (id: number) => {
+    await db.markNotificationRead(id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, readAt: new Date().toISOString() } : n));
+  };
+
+  const typeIcon = (type: string, isRead: boolean) => {
+    const opacity = isRead ? 'opacity-40' : '';
+    switch (type) {
+      case 'success': return <CheckCircle2 size={16} className={`text-green-500 ${opacity}`} />;
+      case 'error': return <AlertCircle size={16} className={`text-red-500 ${opacity}`} />;
+      default: return <Info size={16} className={`text-blue-500 ${opacity}`} />;
+    }
+  };
+
   const timeAgo = (date: string) => {
     const diff = Date.now() - new Date(date).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'agora';
-    if (mins < 60) return `${mins}min`;
+    if (mins < 1) return 'Agora mesmo';
+    if (mins < 60) return `${mins} min atrás`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
+    if (hours < 24) return `${hours}h atrás`;
     const days = Math.floor(hours / 24);
-    return `${days}d`;
+    if (days === 1) return 'Ontem';
+    if (days < 7) return `${days} dias atrás`;
+    return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  };
+
+  const groupByDate = (items: any[]) => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const groups: { label: string; items: any[] }[] = [];
+    const buckets: Record<string, any[]> = { 'Hoje': [], 'Ontem': [], 'Anteriores': [] };
+    items.forEach(n => {
+      const d = new Date(n.createdAt); d.setHours(0, 0, 0, 0);
+      if (d.getTime() >= today.getTime()) buckets['Hoje'].push(n);
+      else if (d.getTime() >= yesterday.getTime()) buckets['Ontem'].push(n);
+      else buckets['Anteriores'].push(n);
+    });
+    if (buckets['Hoje'].length) groups.push({ label: 'Hoje', items: buckets['Hoje'] });
+    if (buckets['Ontem'].length) groups.push({ label: 'Ontem', items: buckets['Ontem'] });
+    if (buckets['Anteriores'].length) groups.push({ label: 'Anteriores', items: buckets['Anteriores'] });
+    return groups;
   };
 
   // Calcular posição do dropdown baseado no botão
@@ -109,8 +148,11 @@ const NotificationBell: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isOpen) updatePos();
+    if (isOpen) { updatePos(); setFilter('all'); }
   }, [isOpen, updatePos]);
+
+  const displayed = filter === 'unread' ? notifications.filter(n => !n.readAt) : notifications;
+  const groups = groupByDate(displayed.slice(0, 30));
 
   return (
     <div ref={bellRef} className="relative">
@@ -120,56 +162,116 @@ const NotificationBell: React.FC = () => {
       >
         <Bell size={20} />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[9px] font-black text-white rounded-full" style={{ backgroundColor: settings.primaryColor }}>
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[9px] font-black text-white rounded-full animate-in zoom-in duration-300" style={{ backgroundColor: settings.primaryColor }}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && createPortal(
-        <div
-          className="fixed w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[9999] overflow-hidden"
-          style={{ top: dropdownPos.top, left: dropdownPos.left }}
-          ref={node => {
-            // Ajustar se sair da tela pela direita
-            if (node) {
-              const rect = node.getBoundingClientRect();
-              if (rect.right > window.innerWidth - 8) {
-                node.style.left = `${window.innerWidth - rect.width - 8}px`;
+        <>
+          {/* Backdrop mobile */}
+          <div className="fixed inset-0 z-[9998] bg-black/20 md:bg-transparent" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed z-[9999] w-[calc(100%-16px)] md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{ top: dropdownPos.top, left: dropdownPos.left }}
+            ref={node => {
+              (dropdownRef as any).current = node;
+              if (node) {
+                const rect = node.getBoundingClientRect();
+                if (rect.right > window.innerWidth - 8) {
+                  node.style.left = `${window.innerWidth - rect.width - 8}px`;
+                }
               }
-            }
-          }}
-        >
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider">Notificações</h3>
-            {unreadCount > 0 && (
-              <button onClick={handleMarkAllRead} className="text-[10px] font-bold text-primary hover:underline" style={{ color: settings.primaryColor }}>
-                Marcar todas como lidas
-              </button>
-            )}
-          </div>
-          <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
-            {notifications.length === 0 ? (
-              <div className="py-8 text-center">
-                <Bell size={24} className="mx-auto text-gray-200 mb-2" />
-                <p className="text-xs text-gray-400 font-medium">Nenhuma notificação</p>
+            }}
+          >
+            {/* Header */}
+            <div className="px-5 pt-4 pb-3">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-black text-gray-900">Notificações</h3>
+                {unreadCount > 0 && (
+                  <button onClick={handleMarkAllRead} className="flex items-center gap-1 text-[10px] font-bold hover:underline transition-colors" style={{ color: settings.primaryColor }}>
+                    <Check size={12} /> Marcar todas como lidas
+                  </button>
+                )}
               </div>
-            ) : (
-              notifications.slice(0, 20).map(n => (
-                <div key={n.id} className={`px-4 py-3 hover:bg-gray-50 transition-colors ${!n.readAt ? 'bg-blue-50/30' : ''}`}>
-                  <div className="flex items-start gap-2">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.readAt ? 'bg-blue-500' : 'bg-transparent'}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-900">{n.title}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
-                    </div>
-                  </div>
+              {/* Filtros */}
+              <div className="flex gap-1 bg-gray-100 p-0.5 rounded-lg">
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${filter === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Todas
+                </button>
+                <button
+                  onClick={() => setFilter('unread')}
+                  className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all flex items-center justify-center gap-1.5 ${filter === 'unread' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Não lidas
+                  {unreadCount > 0 && (
+                    <span className="min-w-[16px] h-4 flex items-center justify-center px-1 text-[9px] font-black text-white rounded-full" style={{ backgroundColor: settings.primaryColor }}>
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Lista */}
+            <div className="max-h-[400px] overflow-y-auto">
+              {groups.length === 0 ? (
+                <div className="py-12 text-center">
+                  <BellOff size={32} className="mx-auto text-gray-200 mb-3" />
+                  <p className="text-sm font-bold text-gray-400">
+                    {filter === 'unread' ? 'Tudo em dia!' : 'Nenhuma notificação'}
+                  </p>
+                  <p className="text-[11px] text-gray-300 mt-1">
+                    {filter === 'unread' ? 'Você leu todas as notificações' : 'As notificações aparecerão aqui'}
+                  </p>
                 </div>
-              ))
-            )}
+              ) : (
+                groups.map(group => (
+                  <div key={group.label}>
+                    <div className="px-5 py-2 bg-gray-50/80 border-y border-gray-100">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{group.label}</p>
+                    </div>
+                    {group.items.map(n => {
+                      const isUnread = !n.readAt;
+                      return (
+                        <div
+                          key={n.id}
+                          onClick={() => {
+                            if (isUnread) handleMarkOneRead(n.id);
+                            if (n.link) {
+                              const route = n.link.replace('#', '');
+                              navigate(route);
+                              setIsOpen(false);
+                            }
+                          }}
+                          className={`group px-5 py-3.5 flex items-start gap-3 transition-all cursor-pointer ${isUnread ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-gray-50'}`}
+                        >
+                          <div className="flex-shrink-0 mt-0.5">
+                            {typeIcon(n.type, !isUnread)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`text-xs leading-tight ${isUnread ? 'font-black text-gray-900' : 'font-bold text-gray-500'}`}>{n.title}</p>
+                              {isUnread && (
+                                <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: settings.primaryColor }} />
+                              )}
+                            </div>
+                            <p className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${isUnread ? 'text-gray-600' : 'text-gray-400'}`}>{n.message}</p>
+                            <p className="text-[10px] text-gray-400 mt-1.5 font-medium">{timeAgo(n.createdAt)}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>,
+        </>,
         document.body
       )}
     </div>
