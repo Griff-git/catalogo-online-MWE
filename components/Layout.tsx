@@ -478,7 +478,7 @@ export const ShopLayout: React.FC<LayoutProps> = ({ children }) => {
             >
               <ShoppingCart size={22} className="md:w-6 md:h-6" />
               {cart.length > 0 && (
-                <span className="absolute top-1 md:top-1.5 right-1 md:right-1.5 inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[9px] md:text-[10px] font-black text-white transform rounded-full ring-2 ring-white animate-in fade-in zoom-in" style={{ backgroundColor: settings.primaryColor }}>
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[9px] font-black text-white rounded-full animate-in fade-in zoom-in" style={{ backgroundColor: settings.primaryColor }}>
                   {cart.length}
                 </span>
               )}
