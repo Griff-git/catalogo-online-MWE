@@ -7,6 +7,7 @@ import { Catalog, Cart, MyOrders, MyClients, Profile } from './pages/Shop';
 import { AdminLayout, ShopLayout } from './components/Layout';
 import { User, Product, CartItem, AppSettings, Role } from './types';
 import { db, getToken, removeToken } from './services/db';
+import { DialogProvider } from './components/Dialog';
 
 interface AppContextType {
   user: User | null;
@@ -202,6 +203,7 @@ const App: React.FC = () => {
 
   return (
     <AppContext.Provider value={{ user, login, logout, cart, addToCart, removeFromCart, updateQuantity, clearCart, settings, updateSettings, isLoading }}>
+      <DialogProvider>
       <HashRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -213,6 +215,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </HashRouter>
+      </DialogProvider>
     </AppContext.Provider>
   );
 };

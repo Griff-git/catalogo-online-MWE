@@ -158,9 +158,9 @@ const NotificationBell: React.FC = () => {
     <div ref={bellRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        className="relative p-2 md:p-3 text-gray-500 hover:text-gray-700 rounded-2xl hover:bg-gray-100 transition-colors"
       >
-        <Bell size={20} />
+        <Bell size={22} className="md:w-6 md:h-6" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[9px] font-black text-white rounded-full animate-in zoom-in duration-300" style={{ backgroundColor: settings.primaryColor }}>
             {unreadCount > 99 ? '99+' : unreadCount}

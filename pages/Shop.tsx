@@ -7,6 +7,7 @@ import {
   MessageCircle, Mail, ExternalLink, ArrowLeft, ClipboardList, User as UserIcon, X, Filter, ChevronDown, PackageOpen, AlertCircle, Download, Percent, Copy, Check, Loader2
 } from 'lucide-react';
 import { db } from '../services/db';
+import { useDialog } from '../components/Dialog';
 import { Product, CartItem, Order, OrderStatus, Role, ResellerClient, POSITIONS, MANUFACTURERS, getPaymentOptions, getInstallmentInfo } from '../types';
 import { AppContext } from '../App';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
@@ -959,6 +960,7 @@ export const Catalog: React.FC = () => {
 
 export const Cart: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, user, settings } = useContext(AppContext);
+  const dialog = useDialog();
   const navigate = useNavigate();
   const [clientName, setClientName] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -1034,11 +1036,11 @@ export const Cart: React.FC = () => {
   const handleCheckout = async () => {
     if (!user) return;
     if (isReseller && !selectedClientId) {
-      alert('Por favor, selecione um cliente da sua carteira para finalizar o pedido.');
+      dialog.alert({ message: 'Por favor, selecione um cliente da sua carteira para finalizar o pedido.', variant: 'warning' });
       return;
     }
     if (!paymentMethod) {
-      alert('Por favor, selecione uma condição de pagamento para finalizar o pedido.');
+      dialog.alert({ message: 'Por favor, selecione uma condição de pagamento para finalizar o pedido.', variant: 'warning' });
       return;
     }
     const clientForOrder = selectedClient;
@@ -1071,7 +1073,7 @@ export const Cart: React.FC = () => {
     };
     await db.createOrder(newOrder);
     clearCart();
-    alert('Pedido enviado com sucesso! Aguarde a conferência financeira.');
+    dialog.alert({ message: 'Pedido enviado com sucesso! Aguarde a conferência financeira.', variant: 'success', title: 'Pedido enviado' });
     navigate('/pedidos');
   };
 
@@ -1415,6 +1417,7 @@ export const Cart: React.FC = () => {
 
 export const MyOrders: React.FC = () => {
   const { user, settings } = useContext(AppContext);
+  const dialog = useDialog();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -1480,9 +1483,9 @@ export const MyOrders: React.FC = () => {
       await db.updateOrder(updated);
       setOrders(prev => prev.map(o => o.id === order.id ? updated : o));
       if (selectedOrder?.id === order.id) setSelectedOrder(updated);
-      alert(newStatus === 'APPROVED' ? 'Pedido aprovado com sucesso!' : 'Status do pedido atualizado.');
+      dialog.alert({ message: newStatus === 'APPROVED' ? 'Pedido aprovado com sucesso!' : 'Status do pedido atualizado.', variant: 'success' });
     } catch (err: any) {
-      alert(err?.message || 'Erro ao atualizar o pedido. Tente novamente.');
+      dialog.alert({ message: err?.message || 'Erro ao atualizar o pedido. Tente novamente.', variant: 'danger' });
     }
   };
 
@@ -1894,6 +1897,7 @@ export const MyOrders: React.FC = () => {
 // ====== MEUS CLIENTES (Reseller Only) ======
 export const MyClients: React.FC = () => {
   const { user, settings } = useContext(AppContext);
+  const dialog = useDialog();
   const navigate = useNavigate();
   const [clients, setClients] = useState<ResellerClient[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -2006,7 +2010,7 @@ export const MyClients: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja remover este cliente da sua carteira?')) return;
+    if (!await dialog.confirm({ title: 'Remover cliente', message: 'Tem certeza que deseja remover este cliente da sua carteira?', variant: 'danger', confirmText: 'Remover' })) return;
     await db.deleteResellerClient(id);
     setClients(prev => prev.filter(c => c.id !== id));
     if (selectedDetail?.id === id) setSelectedDetail(null);

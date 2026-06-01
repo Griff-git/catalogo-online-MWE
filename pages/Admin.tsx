@@ -3,6 +3,7 @@ import { Check, X, Trash2, Edit, Plus, Copy, Search, Archive, Eye, ShieldAlert, 
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { db } from '../services/db';
+import { useDialog } from '../components/Dialog';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { User, Product, UserStatus, Role, Order, OrderStatus, ResellerClient, GROUPS, POSITIONS, MANUFACTURERS, AppSettings as AppSettingsType, CompatibilityItem, PaymentPolicy, PAYMENT_POLICIES } from '../types';
 import { AppContext } from '../App';
@@ -262,6 +263,7 @@ const OrderDetailsModal: React.FC<{
 
 const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpdate: (s: UserStatus) => void; onRoleUpdate?: (newRole: Role) => void; onPermissionToggle?: (permission: string) => void; onDelete?: () => void; zIndex?: number }> = ({ user, onClose, onStatusUpdate, onRoleUpdate, onPermissionToggle, onDelete, zIndex = 120 }) => {
   const { settings } = useContext(AppContext);
+  const dialog = useDialog();
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
 
@@ -324,7 +326,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
         headStyles: { fillColor: rgb as any }
       });
       doc.save(`Pedido_${order.id.slice(0, 8)}.pdf`);
-    } catch (e) { alert('Erro ao gerar PDF.'); }
+    } catch (e) { dialog.alert({ message: 'Erro ao gerar PDF.', variant: 'danger' }); }
   };
 
   const statusConfig = {
@@ -413,10 +415,10 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
 
             {onRoleUpdate && user.role !== Role.ADMIN && (
               <button
-                onClick={() => {
+                onClick={async () => {
                   const newRole = user.role === Role.RETAILER ? Role.RESELLER : Role.RETAILER;
                   const label = newRole === Role.RESELLER ? 'REVENDEDOR' : 'LOJISTA';
-                  if (confirm(`Deseja alterar o cargo de "${user.storeName}" para ${label}?`)) {
+                  if (await dialog.confirm({ message: `Deseja alterar o cargo de "${user.storeName}" para ${label}?`, title: 'Alterar cargo' })) {
                     onRoleUpdate(newRole);
                   }
                 }}
@@ -450,8 +452,8 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
 
             {onDelete && user.role !== Role.ADMIN && (
               <button
-                onClick={() => {
-                  if (confirm(`Tem certeza que deseja EXCLUIR permanentemente o usuário "${user.storeName}"?\n\nTodos os dados serão removidos (pedidos, notificações, clientes vinculados).\n\nEsta ação NÃO pode ser desfeita.`)) {
+                onClick={async () => {
+                  if (await dialog.confirm({ title: 'Excluir usuário', message: `Tem certeza que deseja EXCLUIR permanentemente o usuário "${user.storeName}"?\n\nTodos os dados serão removidos (pedidos, notificações, clientes vinculados).\n\nEsta ação NÃO pode ser desfeita.`, variant: 'danger', confirmText: 'Excluir' })) {
                     onDelete();
                   }
                 }}
@@ -472,7 +474,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
                       <p className="text-[9px] text-gray-500 font-medium truncate">Vinculado como: {linkedReseller.client.tradeName || linkedReseller.client.companyName}</p>
                     </div>
                     <button onClick={async () => {
-                      if (!confirm('Remover vínculo deste lojista com o revendedor?')) return;
+                      if (!await dialog.confirm({ title: 'Remover vínculo', message: 'Remover vínculo deste lojista com o revendedor?' })) return;
                       const updated = { ...linkedReseller.client, linkedUserId: undefined };
                       await db.saveResellerClient(updated as any);
                       setLinkedReseller(null);
@@ -487,7 +489,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
                     </select>
                     <button disabled={!selectedResellerId} onClick={async () => {
                       const existing = allClients.find(c => c.linkedUserId === user.id);
-                      if (existing) { alert('Este lojista j\u00e1 est\u00e1 vinculado a outro revendedor.'); return; }
+                      if (existing) { await dialog.alert({ message: 'Este lojista já está vinculado a outro revendedor.', variant: 'warning' }); return; }
                       const newClient: ResellerClient = {
                         id: crypto.randomUUID(), resellerId: selectedResellerId, linkedUserId: user.id,
                         companyName: user.storeName, tradeName: user.storeName, cnpj: user.cnpj,
@@ -566,6 +568,7 @@ const UserDetailsModal: React.FC<{ user: User; onClose: () => void; onStatusUpda
 
 export const AdminDashboard: React.FC = () => {
   const { settings } = useContext(AppContext);
+  const dialog = useDialog();
   const navigate = useNavigate();
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: '' });
   const [stats, setStats] = useState({
@@ -687,7 +690,7 @@ export const AdminDashboard: React.FC = () => {
 
       XLSX.writeFile(workbook, `Relatorio_Consolidado_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
     } catch (e) {
-      alert('Erro ao exportar relatório.');
+      dialog.alert({ message: 'Erro ao exportar relatório.', variant: 'danger' });
     }
   };
 
@@ -904,6 +907,7 @@ export const AdminDashboard: React.FC = () => {
 
 export const AdminProducts: React.FC = () => {
   const { settings } = useContext(AppContext);
+  const dialog = useDialog();
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -975,7 +979,7 @@ export const AdminProducts: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Deseja excluir permanentemente este item?')) {
+    if (await dialog.confirm({ title: 'Excluir produto', message: 'Deseja excluir permanentemente este item?', variant: 'danger', confirmText: 'Excluir' })) {
       await db.deleteProduct(id);
       load();
       showFeedback('Produto excluído.');
@@ -994,7 +998,7 @@ export const AdminProducts: React.FC = () => {
       showFeedback('Imagem adicionada!');
     } catch (err) {
       console.error(err);
-      alert('Erro ao processar imagem.');
+      dialog.alert({ message: 'Erro ao processar imagem.', variant: 'danger' });
     }
     if (imageInputRef.current) imageInputRef.current.value = '';
   };
@@ -1052,7 +1056,7 @@ export const AdminProducts: React.FC = () => {
       showFeedback('Catálogo exportado!');
     } catch (err) {
       console.error(err);
-      alert('Erro ao exportar Excel. Verifique se os dados não excedem os limites do Excel.');
+      dialog.alert({ message: 'Erro ao exportar Excel. Verifique se os dados não excedem os limites do Excel.', variant: 'danger' });
     }
   };
 
@@ -1192,7 +1196,7 @@ export const AdminProducts: React.FC = () => {
         setUploadProgress(0);
         setUploadComplete(false);
 
-        if (confirm(`Encontrados ${newProducts.length} produtos. Deseja importar/atualizar? Isso substituirá dados existentes com mesmos IDs.`)) {
+        if (await dialog.confirm({ title: 'Importar produtos', message: `Encontrados ${newProducts.length} produtos. Deseja importar/atualizar? Isso substituirá dados existentes com mesmos IDs.`, confirmText: 'Importar' })) {
           await db.replaceProducts(newProducts, (percent) => {
             setUploadProgress(percent);
           });
@@ -1220,7 +1224,7 @@ export const AdminProducts: React.FC = () => {
         setIsUploading(false);
         setUploadProgress(0);
         setUploadComplete(false);
-        alert(`Erro ao importar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+        dialog.alert({ message: `Erro ao importar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, variant: 'danger' });
       }
       if (fileInputRef.current) fileInputRef.current.value = '';
     };
@@ -1935,6 +1939,7 @@ export const AdminProducts: React.FC = () => {
 export const AdminOrders: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { settings } = useContext(AppContext);
+  const dialog = useDialog();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1972,7 +1977,7 @@ export const AdminOrders: React.FC = () => {
   };
 
   const handleDeleteOrder = async (orderId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.')) return;
+    if (!await dialog.confirm({ title: 'Excluir pedido', message: 'Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.', variant: 'danger', confirmText: 'Excluir' })) return;
     await db.deleteOrder(orderId);
     if (selected?.id === orderId) setSelected(null);
     load();
@@ -2166,7 +2171,7 @@ export const AdminOrders: React.FC = () => {
       doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, pageW - 14, footerY, { align: 'right' });
 
       doc.save(`Pedido_${order.id.slice(0, 8)}.pdf`);
-    } catch (e) { alert('Erro ao gerar PDF.'); }
+    } catch (e) { dialog.alert({ message: 'Erro ao gerar PDF.', variant: 'danger' }); }
   };
 
   // Corrected: handleViewRetailer is now async to handle promise from db.getUsers()
@@ -2397,6 +2402,7 @@ export const AdminOrders: React.FC = () => {
 export const AdminUsers: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { settings } = useContext(AppContext);
+  const dialog = useDialog();
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -2471,7 +2477,7 @@ export const AdminUsers: React.FC = () => {
       setSelectedUser(null);
       load();
     } catch (err: any) {
-      alert(err?.message || 'Erro ao excluir usuário.');
+      dialog.alert({ message: err?.message || 'Erro ao excluir usuário.', variant: 'danger' });
     }
   };
 
@@ -2497,7 +2503,7 @@ export const AdminUsers: React.FC = () => {
       setResellerForm({ storeName: '', responsibleName: '', cnpj: '', phone: '', email: '', password: '', permissions: ['catalog'] });
       load();
     } catch (err) {
-      alert('Erro ao criar revendedor.');
+      dialog.alert({ message: 'Erro ao criar revendedor.', variant: 'danger' });
     } finally {
       setIsCreating(false);
     }
@@ -2891,6 +2897,7 @@ export const AdminUsers: React.FC = () => {
 
 export const AdminBrands: React.FC = () => {
   const { settings } = useContext(AppContext);
+  const dialog = useDialog();
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -2931,7 +2938,7 @@ export const AdminBrands: React.FC = () => {
   };
 
   const handleDelete = async (b: any) => {
-    if (!confirm(`Excluir a marca "${b.name}"? Os produtos vinculados perderão a marca.`)) return;
+    if (!await dialog.confirm({ title: 'Excluir marca', message: `Excluir a marca "${b.name}"? Os produtos vinculados perderão a marca.`, variant: 'danger', confirmText: 'Excluir' })) return;
     await db.deleteBrand(b.id);
     load();
   };
@@ -2944,7 +2951,7 @@ export const AdminBrands: React.FC = () => {
       const url = await db.uploadImage(file);
       setForm(prev => ({ ...prev, logoUrl: typeof url === 'string' ? url : '' }));
     } catch (err) {
-      alert('Erro ao fazer upload da imagem.');
+      dialog.alert({ message: 'Erro ao fazer upload da imagem.', variant: 'danger' });
     } finally {
       setUploading(false);
     }
@@ -3081,6 +3088,7 @@ export const AdminBrands: React.FC = () => {
 
 export const AdminSettings: React.FC = () => {
   const { settings, updateSettings } = useContext(AppContext);
+  const dialog = useDialog();
   const [temp, setTemp] = useState<AppSettingsType>(settings);
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -3095,7 +3103,7 @@ export const AdminSettings: React.FC = () => {
       setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
       console.error("Erro ao salvar:", error);
-      alert("Erro ao salvar configurações. Verifique o console.");
+      dialog.alert({ message: 'Erro ao salvar configurações. Verifique o console.', variant: 'danger' });
     } finally {
       setIsSaving(false);
     }
@@ -3428,8 +3436,8 @@ export const AdminSettings: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm('Deseja restaurar as condições de pagamento para o padrão?')) {
+                    onClick={async () => {
+                      if (await dialog.confirm({ title: 'Restaurar padrão', message: 'Deseja restaurar as condições de pagamento para o padrão?' })) {
                         setTemp({ ...temp, paymentPolicies: [...PAYMENT_POLICIES] });
                       }
                     }}
