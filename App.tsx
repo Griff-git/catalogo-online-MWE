@@ -5,7 +5,7 @@ import { Login, Register, ForgotPassword, ResetPassword } from './pages/Auth';
 import { AdminDashboard, AdminUsers, AdminProducts, AdminSettings, AdminOrders, AdminBrands } from './pages/Admin';
 import { Catalog, Cart, MyOrders, MyClients, Profile } from './pages/Shop';
 import { AdminLayout, ShopLayout } from './components/Layout';
-import { User, Product, CartItem, AppSettings, Role } from './types';
+import { User, Product, CartItem, AppSettings, Role, Order } from './types';
 import { db, getToken, removeToken } from './services/db';
 import { DialogProvider } from './components/Dialog';
 
@@ -18,6 +18,9 @@ interface AppContextType {
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, qty: number) => void;
   clearCart: () => void;
+  editingOrder: Order | null;
+  setEditingOrder: (order: Order | null) => void;
+  loadOrderToCart: (order: Order) => Promise<void>;
   settings: AppSettings;
   updateSettings: (s: AppSettings) => void;
   isLoading: boolean;
@@ -55,6 +58,7 @@ const ProtectedRoute = ({ children, area }: { children?: ReactNode; area?: 'admi
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState<AppSettings>({
     primaryColor: '#fc5200',
@@ -170,6 +174,39 @@ const App: React.FC = () => {
     if (user) localStorage.removeItem(`cart_${user.id}`);
   };
 
+  const loadOrderToCart = async (order: Order) => {
+    // Load products from DB to get full Product data for CartItem
+    const products = await db.getProducts();
+    const cartItems: CartItem[] = order.items.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      if (product) {
+        return { ...product, quantity: item.quantity };
+      }
+      // Fallback: build CartItem from order item data
+      return {
+        id: item.productId,
+        name: item.name || item.productName || '',
+        internalCode: item.internalCode || '',
+        parallelCodes: '',
+        description: '',
+        manufacturer: '',
+        vehicle: '',
+        compatibility: [],
+        application: item.application || '',
+        kitComponents: '',
+        group: '',
+        position: '',
+        price: item.price,
+        images: item.image ? [item.image] : [],
+        stock: 999,
+        active: true,
+        quantity: item.quantity
+      };
+    });
+    setCart(cartItems);
+    setEditingOrder(order);
+  };
+
   // Persistir carrinho sempre que mudar
   useEffect(() => {
     if (user && cart.length > 0) {
@@ -202,7 +239,7 @@ const App: React.FC = () => {
   }, [settings, isLoading]);
 
   return (
-    <AppContext.Provider value={{ user, login, logout, cart, addToCart, removeFromCart, updateQuantity, clearCart, settings, updateSettings, isLoading }}>
+    <AppContext.Provider value={{ user, login, logout, cart, addToCart, removeFromCart, updateQuantity, clearCart, editingOrder, setEditingOrder, loadOrderToCart, settings, updateSettings, isLoading }}>
       <DialogProvider>
       <HashRouter>
         <Routes>

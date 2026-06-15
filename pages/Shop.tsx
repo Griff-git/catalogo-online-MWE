@@ -4,7 +4,8 @@ import { createPortal } from 'react-dom';
 import {
   Search, ShoppingCart, Info, CarFront, Tag, Package, Trash2,
   Minus, Plus, ChevronRight, FileText, Eye, CheckCircle2,
-  MessageCircle, Mail, ExternalLink, ArrowLeft, ClipboardList, User as UserIcon, X, Filter, ChevronDown, PackageOpen, AlertCircle, Download, Percent, Copy, Check, Loader2
+  MessageCircle, Mail, ExternalLink, ArrowLeft, ClipboardList, User as UserIcon, X, Filter, ChevronDown, PackageOpen, AlertCircle, Download, Percent, Copy, Check, Loader2,
+  Pencil, Clock, CircleCheck, XCircle, Truck, CircleDot
 } from 'lucide-react';
 import { db } from '../services/db';
 import { useDialog } from '../components/Dialog';
@@ -959,7 +960,7 @@ export const Catalog: React.FC = () => {
 };
 
 export const Cart: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart, user, settings } = useContext(AppContext);
+  const { cart, removeFromCart, updateQuantity, clearCart, user, settings, editingOrder, setEditingOrder } = useContext(AppContext);
   const dialog = useDialog();
   const navigate = useNavigate();
   const [clientName, setClientName] = useState('');
@@ -1000,6 +1001,22 @@ export const Cart: React.FC = () => {
   const [quickClient, setQuickClient] = useState({ companyName: '', tradeName: '', cnpj: '', phone: '', email: '' });
   const clientDropdownRef = useRef<HTMLDivElement>(null);
 
+
+  // Pre-populate fields when editing an order
+  useEffect(() => {
+    if (editingOrder) {
+      setPaymentMethod(editingOrder.paymentMethod || '');
+      setObservations(editingOrder.observations || '');
+      if (editingOrder.resellerClientId) setSelectedClientId(editingOrder.resellerClientId);
+      if (editingOrder.orderDiscountPercent) setOrderDiscountPercent(editingOrder.orderDiscountPercent);
+      // Restore per-item discounts
+      const discounts: Record<string, number> = {};
+      editingOrder.items.forEach(item => {
+        if (item.discountPercent) discounts[item.productId] = item.discountPercent;
+      });
+      if (Object.keys(discounts).length > 0) setItemDiscounts(discounts);
+    }
+  }, [editingOrder]);
 
   // Load reseller clients
   useEffect(() => {
@@ -1044,37 +1061,59 @@ export const Cart: React.FC = () => {
       return;
     }
     const clientForOrder = selectedClient;
-    const newOrder: Order = {
-      id: crypto.randomUUID(),
-      userId: user.id,
-      userStoreName: user.storeName,
-      ...(isReseller && clientForOrder ? { clientName: clientForOrder.tradeName || clientForOrder.companyName, resellerClientId: clientForOrder.id } : {}),
-      paymentMethod,
-      ...(observations.trim() ? { observations: observations.trim() } : {}),
-      items: cart.map(i => {
-        const disc = isReseller ? getItemDiscount(i.id) : 0;
-        const discPrice = isReseller ? getItemDiscountedPrice(i) : i.price;
-        return {
-          productId: i.id,
-          productName: i.name,
-          name: i.name,
-          internalCode: i.internalCode || '',
-          application: i.application || '',
-          image: i.images?.[0] || '',
-          quantity: i.quantity,
-          price: i.price,
-          ...(disc > 0 ? { discountPercent: disc, discountedPrice: discPrice } : {})
-        };
-      }),
-      total,
-      ...(isReseller && totalDiscount > 0 ? { totalDiscount, orderDiscountPercent: clampedOrderDiscount } : {}),
-      status: 'ANALYSIS',
-      date: new Date().toISOString()
-    };
-    await db.createOrder(newOrder);
-    clearCart();
-    dialog.alert({ message: 'Pedido enviado com sucesso! Aguarde a conferência financeira.', variant: 'success', title: 'Pedido enviado' });
-    navigate('/pedidos');
+    const orderItems = cart.map(i => {
+      const disc = isReseller ? getItemDiscount(i.id) : 0;
+      const discPrice = isReseller ? getItemDiscountedPrice(i) : i.price;
+      return {
+        productId: i.id,
+        productName: i.name,
+        name: i.name,
+        internalCode: i.internalCode || '',
+        application: i.application || '',
+        image: i.images?.[0] || '',
+        quantity: i.quantity,
+        price: i.price,
+        ...(disc > 0 ? { discountPercent: disc, discountedPrice: discPrice } : {})
+      };
+    });
+
+    if (editingOrder) {
+      // Update existing order
+      const updatedOrder: Order = {
+        ...editingOrder,
+        ...(isReseller && clientForOrder ? { clientName: clientForOrder.tradeName || clientForOrder.companyName, resellerClientId: clientForOrder.id } : {}),
+        paymentMethod,
+        ...(observations.trim() ? { observations: observations.trim() } : {}),
+        items: orderItems,
+        total,
+        ...(isReseller && totalDiscount > 0 ? { totalDiscount, orderDiscountPercent: clampedOrderDiscount } : {}),
+        status: 'ANALYSIS',
+      };
+      await db.updateOrder(updatedOrder);
+      setEditingOrder(null);
+      clearCart();
+      dialog.alert({ message: 'Pedido atualizado com sucesso!', variant: 'success', title: 'Pedido atualizado' });
+      navigate('/pedidos');
+    } else {
+      // Create new order
+      const newOrder: Order = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        userStoreName: user.storeName,
+        ...(isReseller && clientForOrder ? { clientName: clientForOrder.tradeName || clientForOrder.companyName, resellerClientId: clientForOrder.id } : {}),
+        paymentMethod,
+        ...(observations.trim() ? { observations: observations.trim() } : {}),
+        items: orderItems,
+        total,
+        ...(isReseller && totalDiscount > 0 ? { totalDiscount, orderDiscountPercent: clampedOrderDiscount } : {}),
+        status: 'ANALYSIS',
+        date: new Date().toISOString()
+      };
+      await db.createOrder(newOrder);
+      clearCart();
+      dialog.alert({ message: 'Pedido enviado com sucesso! Aguarde a conferência financeira.', variant: 'success', title: 'Pedido enviado' });
+      navigate('/pedidos');
+    }
   };
 
   // Quick add client from cart
@@ -1115,7 +1154,14 @@ export const Cart: React.FC = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 animate-in fade-in duration-500">
       <div className="lg:col-span-2 space-y-4">
-        <h1 className="text-3xl font-black text-gray-900 mb-8">Itens no Pedido</h1>
+        <div className="flex items-center gap-3 mb-8">
+          <h1 className="text-3xl font-black text-gray-900">{editingOrder ? 'Editando Pedido' : 'Itens no Pedido'}</h1>
+          {editingOrder && (
+            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">
+              #{editingOrder.id.slice(0, 8).toUpperCase()}
+            </span>
+          )}
+        </div>
         {cart.map(item => {
           const disc = isReseller ? getItemDiscount(item.id) : 0;
           const discPrice = getItemDiscountedPrice(item);
@@ -1406,7 +1452,7 @@ export const Cart: React.FC = () => {
             className="w-full py-5 text-white font-black rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] uppercase text-xs tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             style={{ backgroundColor: settings.primaryColor }}
           >
-            Finalizar Orçamento
+            {editingOrder ? 'Salvar Alterações' : 'Finalizar Orçamento'}
           </button>
           <button onClick={() => navigate('/catalogo')} className="w-full mt-4 py-4 text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-gray-900 transition-colors">Continuar Comprando</button>
         </div>
@@ -1416,11 +1462,12 @@ export const Cart: React.FC = () => {
 };
 
 export const MyOrders: React.FC = () => {
-  const { user, settings } = useContext(AppContext);
+  const { user, settings, loadOrderToCart } = useContext(AppContext);
   const dialog = useDialog();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -1454,15 +1501,34 @@ export const MyOrders: React.FC = () => {
     loadOrders();
   }, [user]);
 
+  const activeStatuses: OrderStatus[] = ['ANALYSIS', 'APPROVED', 'PENDING', 'SHIPPED'];
+  const completedStatuses: OrderStatus[] = ['COMPLETED', 'CANCELED'];
+
+  const activeOrders = orders.filter(o => activeStatuses.includes(o.status)).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const completedOrders = orders.filter(o => completedStatuses.includes(o.status)).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const displayedOrders = activeTab === 'active' ? activeOrders : completedOrders;
+
   const getStatusStyle = (status: OrderStatus) => {
     switch (status) {
-      case 'ANALYSIS': return 'bg-gray-50 text-gray-600 border-gray-200';
-      case 'APPROVED': return 'bg-green-50 text-green-700 border-green-100';
-      case 'PENDING': return 'bg-gray-50 text-gray-600 border-gray-200';
-      case 'SHIPPED': return 'bg-gray-50 text-gray-600 border-gray-200';
-      case 'COMPLETED': return 'bg-green-50 text-green-700 border-green-100';
-      case 'CANCELED': return 'bg-red-50 text-red-700 border-red-100';
+      case 'ANALYSIS': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'APPROVED': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'PENDING': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'SHIPPED': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'COMPLETED': return 'bg-green-50 text-green-700 border-green-200';
+      case 'CANCELED': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-100';
+    }
+  };
+
+  const getStatusIcon = (status: OrderStatus) => {
+    switch (status) {
+      case 'ANALYSIS': return <Clock size={12} />;
+      case 'APPROVED': return <CheckCircle2 size={12} />;
+      case 'PENDING': return <CircleDot size={12} />;
+      case 'SHIPPED': return <Truck size={12} />;
+      case 'COMPLETED': return <CircleCheck size={12} />;
+      case 'CANCELED': return <XCircle size={12} />;
+      default: return null;
     }
   };
 
@@ -1474,6 +1540,29 @@ export const MyOrders: React.FC = () => {
       case 'SHIPPED': return 'Enviado';
       case 'COMPLETED': return 'Faturado / Concluído';
       case 'CANCELED': return 'Cancelado';
+    }
+  };
+
+  const canEdit = (order: Order) => order.status === 'ANALYSIS';
+  const canDelete = (order: Order) => order.status === 'ANALYSIS' || order.status === 'CANCELED';
+
+  const handleEditOrder = async (order: Order) => {
+    const confirmed = await dialog.confirm({ message: 'Deseja editar este pedido? Os itens serão carregados no carrinho para edição.', title: 'Editar Pedido' });
+    if (!confirmed) return;
+    await loadOrderToCart(order);
+    navigate('/carrinho');
+  };
+
+  const handleDeleteOrder = async (order: Order) => {
+    const confirmed = await dialog.confirm({ message: 'Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.', title: 'Excluir Pedido', variant: 'danger' });
+    if (!confirmed) return;
+    try {
+      await db.deleteOrder(order.id);
+      setOrders(prev => prev.filter(o => o.id !== order.id));
+      if (selectedOrder?.id === order.id) setSelectedOrder(null);
+      dialog.alert({ message: 'Pedido excluído com sucesso.', variant: 'success' });
+    } catch (err: any) {
+      dialog.alert({ message: err?.message || 'Erro ao excluir o pedido.', variant: 'danger' });
     }
   };
 
@@ -1682,8 +1771,9 @@ export const MyOrders: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900">Meus Pedidos</h1>
           <p className="text-gray-500 font-medium">Acompanhe o status e histórico das suas compras.</p>
@@ -1691,6 +1781,59 @@ export const MyOrders: React.FC = () => {
         <button onClick={() => navigate('/catalogo')} className="px-6 py-3 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2" style={{ backgroundColor: settings.primaryColor }}><Plus size={14} /> Novo Pedido</button>
       </div>
 
+      {/* Stats Cards */}
+      {!loadingOrders && orders.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+            <p className="text-2xl font-black text-gray-900">{orders.length}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+            <p className="text-2xl font-black text-gray-900">{orders.filter(o => o.status === 'ANALYSIS').length}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Em Análise</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+            <p className="text-2xl font-black text-gray-900">{orders.filter(o => o.status === 'SHIPPED').length}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Enviados</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+            <p className="text-2xl font-black text-gray-900">{orders.filter(o => o.status === 'COMPLETED').length}</p>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Concluídos</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      {!loadingOrders && orders.length > 0 && (
+        <div className="flex gap-2 bg-gray-100 p-1.5 rounded-2xl">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'active' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            <Clock size={14} />
+            Em Andamento
+            {activeOrders.length > 0 && (
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[9px] ${activeTab === 'active' ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                {activeOrders.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('completed')}
+            className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'completed' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            <CircleCheck size={14} />
+            Concluídos
+            {completedOrders.length > 0 && (
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[9px] ${activeTab === 'completed' ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                {completedOrders.length}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Order List */}
       <div className="space-y-4">
         {loadingOrders ? (
           Array.from({ length: 3 }).map((_, i) => (
@@ -1709,51 +1852,90 @@ export const MyOrders: React.FC = () => {
               <Skeleton className="h-12 w-32 rounded-2xl" />
             </div>
           ))
-        ) : orders.length > 0 ? (
-          orders.map(order => (
-            <div key={order.id} className="bg-white rounded-[1.25rem] border border-gray-100 p-8 shadow-sm hover:border-gray-300 transition-all flex flex-col md:flex-row gap-8 items-center">
-              <div className="flex-1 w-full">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xs font-black text-gray-900 uppercase tracking-widest">#{order.id.slice(0, 8).toUpperCase()}</span>
-                  <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
-                    {statusLabel(order.status)}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Data</p>
-                    <p className="text-sm font-bold text-gray-900">{new Date(order.date).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Itens</p>
-                    <p className="text-sm font-bold text-gray-900">{order.items.length} un.</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Valor Total</p>
-                    <p className="text-sm font-black text-primary" style={{ color: settings.primaryColor }}>{formatPrice(order.total)}</p>
-                  </div>
-                  {order.clientName && (
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Cliente</p>
-                      <p className="text-sm font-bold text-gray-900">{order.clientName}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedOrder(order)}
-                className="w-full md:w-auto px-8 py-4 bg-gray-50 text-gray-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all"
-              >
-                Ver Detalhes
-              </button>
-            </div>
-          ))
-        ) : (
+        ) : orders.length === 0 ? (
           <div className="py-20 text-center bg-white rounded-[1.25rem] border border-gray-100 border-dashed">
             <ClipboardList size={64} className="mx-auto text-gray-100 mb-6" />
             <h3 className="text-xl font-black text-gray-400">Você ainda não realizou pedidos</h3>
             <button onClick={() => navigate('/catalogo')} className="mt-6 px-8 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Ir para o Catálogo</button>
           </div>
+        ) : displayedOrders.length === 0 ? (
+          <div className="py-16 text-center bg-white rounded-[1.25rem] border border-gray-100 border-dashed">
+            {activeTab === 'active' ? (
+              <>
+                <CheckCircle2 size={48} className="mx-auto text-gray-200 mb-4" />
+                <h3 className="text-lg font-black text-gray-400">Nenhum pedido em andamento</h3>
+                <p className="text-sm text-gray-400 mt-1">Todos os seus pedidos foram finalizados.</p>
+              </>
+            ) : (
+              <>
+                <ClipboardList size={48} className="mx-auto text-gray-200 mb-4" />
+                <h3 className="text-lg font-black text-gray-400">Nenhum pedido concluído ainda</h3>
+                <p className="text-sm text-gray-400 mt-1">Pedidos finalizados aparecerão aqui.</p>
+              </>
+            )}
+          </div>
+        ) : (
+          displayedOrders.map(order => (
+            <div key={order.id} className={`bg-white rounded-[1.25rem] border p-6 md:p-8 shadow-sm hover:shadow-md transition-all ${order.status === 'CANCELED' ? 'border-red-100 opacity-75' : 'border-gray-100 hover:border-gray-200'}`}>
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                <div className="flex-1 w-full">
+                  <div className="flex items-center gap-3 mb-4 flex-wrap">
+                    <span className="text-xs font-black text-gray-900 uppercase tracking-widest">#{order.id.slice(0, 8).toUpperCase()}</span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 ${getStatusStyle(order.status)}`}>
+                      {getStatusIcon(order.status)} {statusLabel(order.status)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Data</p>
+                      <p className="text-sm font-bold text-gray-900">{new Date(order.date).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Itens</p>
+                      <p className="text-sm font-bold text-gray-900">{order.items.length} {order.items.length === 1 ? 'item' : 'itens'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Valor Total</p>
+                      <p className="text-sm font-black" style={{ color: settings.primaryColor }}>{formatPrice(order.total)}</p>
+                    </div>
+                    {order.clientName && (
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Cliente</p>
+                        <p className="text-sm font-bold text-gray-900 truncate">{order.clientName}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Action Buttons */}
+                <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
+                  {canEdit(order) && (
+                    <button
+                      onClick={() => handleEditOrder(order)}
+                      className="flex-1 md:flex-none px-4 py-3 bg-gray-50 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 hover:text-gray-900 transition-all flex items-center justify-center gap-1.5"
+                      title="Editar pedido"
+                    >
+                      <Pencil size={13} /> <span className="hidden sm:inline">Editar</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSelectedOrder(order)}
+                    className="flex-1 md:flex-none px-5 py-3 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <Eye size={13} /> <span className="hidden sm:inline">Detalhes</span>
+                  </button>
+                  {canDelete(order) && (
+                    <button
+                      onClick={() => handleDeleteOrder(order)}
+                      className="flex-1 md:flex-none px-4 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-1.5"
+                      title="Excluir pedido"
+                    >
+                      <Trash2 size={13} /> <span className="hidden sm:inline">Excluir</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
@@ -1762,26 +1944,26 @@ export const MyOrders: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-300" onClick={e => { if (e.target === e.currentTarget) setSelectedOrder(null); }}>
           <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-[1rem] md:rounded-[1.25rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col">
             {/* Header */}
-            <div className="p-8 pb-0 flex items-center justify-between">
+            <div className="p-6 md:p-8 pb-0 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black text-gray-900">Detalhes do Pedido</h2>
-                <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
                   <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">#{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
-                  <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(selectedOrder.status)}`}>
-                    {statusLabel(selectedOrder.status)}
+                  <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center gap-1.5 ${getStatusStyle(selectedOrder.status)}`}>
+                    {getStatusIcon(selectedOrder.status)} {statusLabel(selectedOrder.status)}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-900 transition-all hover:rotate-90 duration-300"
+                className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-900 transition-all hover:rotate-90 duration-300 flex-shrink-0"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Info */}
-            <div className="px-8 pt-6 pb-4">
+            <div className="px-6 md:px-8 pt-6 pb-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-2xl">
                   <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Data</p>
@@ -1821,7 +2003,7 @@ export const MyOrders: React.FC = () => {
             </div>
 
             {/* Items List */}
-            <div className="px-8 flex-1 overflow-y-auto">
+            <div className="px-6 md:px-8 flex-1 overflow-y-auto">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Itens do Pedido</p>
               <div className="space-y-3">
                 {selectedOrder.items.map((item: any, i: number) => (
@@ -1857,31 +2039,53 @@ export const MyOrders: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="p-8 pt-6 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Valor Total</p>
-                <p className="text-2xl font-black" style={{ color: settings.primaryColor }}>{formatPrice(selectedOrder.total)}</p>
-              </div>
-              <div className="flex gap-3">
-                {/* Reseller: approve order */}
+            <div className="p-6 md:p-8 pt-6 border-t border-gray-100 space-y-4">
+              {/* Total */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Valor Total</p>
+                  <p className="text-2xl font-black" style={{ color: settings.primaryColor }}>{formatPrice(selectedOrder.total)}</p>
+                </div>
+                {/* Primary action: Approve (reseller only) */}
                 {user?.role === 'RESELLER' && selectedOrder.status === 'ANALYSIS' && (
                   <button
                     onClick={() => handleOrderStatus(selectedOrder, 'APPROVED')}
-                    className="px-6 py-3.5 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-green-700 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+                    className="px-6 py-3.5 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+                    style={{ backgroundColor: settings.primaryColor }}
                   >
                     <CheckCircle2 size={14} /> Aprovar Pedido
                   </button>
                 )}
-                <button
-                  onClick={() => generatePDF(selectedOrder)}
-                  className="px-6 py-3.5 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
-                  style={{ backgroundColor: settings.primaryColor }}
-                >
-                  <Download size={14} /> Baixar PDF
-                </button>
+              </div>
+              {/* Secondary actions row */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex gap-2">
+                  {canEdit(selectedOrder) && (
+                    <button
+                      onClick={() => { setSelectedOrder(null); handleEditOrder(selectedOrder); }}
+                      className="px-4 py-2.5 bg-gray-50 text-gray-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 hover:text-gray-900 transition-all flex items-center gap-2"
+                    >
+                      <Pencil size={13} /> Editar
+                    </button>
+                  )}
+                  <button
+                    onClick={() => generatePDF(selectedOrder)}
+                    className="px-4 py-2.5 bg-gray-50 text-gray-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 hover:text-gray-900 transition-all flex items-center gap-2"
+                  >
+                    <Download size={13} /> PDF
+                  </button>
+                  {canDelete(selectedOrder) && (
+                    <button
+                      onClick={() => handleDeleteOrder(selectedOrder)}
+                      className="px-4 py-2.5 bg-gray-50 text-gray-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all flex items-center gap-2"
+                    >
+                      <Trash2 size={13} /> Excluir
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="px-6 py-3.5 bg-gray-100 text-gray-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all"
+                  className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all"
                 >
                   Fechar
                 </button>

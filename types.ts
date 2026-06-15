@@ -88,6 +88,10 @@ export interface Order {
   items: {
     productId: string;
     productName: string;
+    name?: string;
+    internalCode?: string;
+    application?: string;
+    image?: string;
     quantity: number;
     price: number;
     discountPercent?: number;   // desconto % do item (0-100)

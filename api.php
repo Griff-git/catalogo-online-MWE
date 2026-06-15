@@ -881,30 +881,6 @@ try {
         case 'updateOrder':
             $authUser = requireAuth();
 
-            // Verificar permissão: admin pode alterar qualquer pedido, revendedor pode aprovar seus próprios
-            $isAdmin = $authUser['role'] === 'ADMIN' || in_array('admin_panel', $authUser['permissions'] ?? []);
-            $isResellerApproving = $authUser['role'] === 'RESELLER' && ($input['status'] ?? '') === 'APPROVED';
-
-            if (!$isAdmin && !$isResellerApproving) {
-                http_response_code(403);
-                jsonResponse(["error" => "Sem permissão para alterar pedidos."]);
-            }
-
-            // Se for revendedor, verificar se o pedido pertence a ele e está em análise
-            if ($isResellerApproving && !$isAdmin) {
-                $checkStmt = $conn->prepare("SELECT userId, status FROM orders WHERE id = :id");
-                $checkStmt->execute([':id' => $input['id']]);
-                $orderCheck = $checkStmt->fetch();
-                if (!$orderCheck || $orderCheck['userId'] !== $authUser['userId']) {
-                    http_response_code(403);
-                    jsonResponse(["error" => "Você só pode aprovar seus próprios pedidos."]);
-                }
-                if ($orderCheck['status'] !== 'ANALYSIS') {
-                    http_response_code(400);
-                    jsonResponse(["error" => "Apenas pedidos em análise podem ser aprovados."]);
-                }
-            }
-
             if (empty($input['id']) || empty($input['status'])) {
                 http_response_code(400);
                 jsonResponse(["error" => "ID e status são obrigatórios."]);
@@ -916,54 +892,141 @@ try {
                 jsonResponse(["error" => "Status inválido."]);
             }
 
-            $stmt = $conn->prepare("UPDATE orders SET status = :status WHERE id = :id");
-            $stmt->execute([':status' => $input['status'], ':id' => $input['id']]);
+            // Buscar pedido atual
+            $checkStmt = $conn->prepare("SELECT * FROM orders WHERE id = :id");
+            $checkStmt->execute([':id' => $input['id']]);
+            $orderCheck = $checkStmt->fetch();
+            if (!$orderCheck) {
+                http_response_code(404);
+                jsonResponse(["error" => "Pedido não encontrado."]);
+            }
+
+            $isAdmin = $authUser['role'] === 'ADMIN' || in_array('admin_panel', $authUser['permissions'] ?? []);
+            $isOwner = $orderCheck['userId'] === $authUser['userId'];
+            $isResellerApproving = $authUser['role'] === 'RESELLER' && ($input['status'] ?? '') === 'APPROVED' && $isOwner;
+            $isOwnerEditing = $isOwner && $orderCheck['status'] === 'ANALYSIS' && ($input['status'] ?? '') === 'ANALYSIS' && isset($input['items']);
+
+            if (!$isAdmin && !$isResellerApproving && !$isOwnerEditing) {
+                http_response_code(403);
+                jsonResponse(["error" => "Sem permissão para alterar pedidos."]);
+            }
+
+            // Se for revendedor aprovando, verificar se o pedido está em análise
+            if ($isResellerApproving && !$isAdmin && $orderCheck['status'] !== 'ANALYSIS') {
+                http_response_code(400);
+                jsonResponse(["error" => "Apenas pedidos em análise podem ser aprovados."]);
+            }
+
+            if ($isOwnerEditing) {
+                // Edição completa do pedido pelo dono (apenas em ANALYSIS)
+                $stmt = $conn->prepare("UPDATE orders SET
+                    clientName = :clientName, resellerClientId = :resellerClientId,
+                    paymentMethod = :paymentMethod, observations = :observations,
+                    total = :total, totalDiscount = :totalDiscount, orderDiscountPercent = :orderDiscountPercent,
+                    status = :status, items = :items
+                    WHERE id = :id");
+                $stmt->execute([
+                    ':clientName' => sanitizeString($input['clientName'] ?? ''),
+                    ':resellerClientId' => $input['resellerClientId'] ?? null,
+                    ':paymentMethod' => sanitizeString($input['paymentMethod'] ?? ''),
+                    ':observations' => sanitizeString($input['observations'] ?? ''),
+                    ':total' => (float)($input['total'] ?? 0),
+                    ':totalDiscount' => (float)($input['totalDiscount'] ?? 0),
+                    ':orderDiscountPercent' => (float)($input['orderDiscountPercent'] ?? 0),
+                    ':status' => 'ANALYSIS',
+                    ':items' => json_encode($input['items']),
+                    ':id' => $input['id']
+                ]);
+
+                auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'EDIT_ORDER', 'orders', $input['id'], "Pedido editado. Total: R$ " . number_format($input['total'] ?? 0, 2, ',', '.'));
+
+                // Notificar admins sobre edição do pedido
+                $adminsStmt = $conn->query("SELECT id FROM users WHERE role = 'ADMIN'");
+                $admins = $adminsStmt->fetchAll();
+                $orderRef = strtoupper(substr($input['id'], 0, 8));
+                foreach ($admins as $admin) {
+                    createNotification($conn, $admin['id'], 'Pedido Editado', 'O pedido #' . $orderRef . ' de ' . sanitizeString($orderCheck['userStoreName'] ?? '') . ' foi alterado. Novo total: R$ ' . number_format($input['total'] ?? 0, 2, ',', '.'), 'info', '#/admin/pedidos?open=' . $input['id']);
+                }
+            } else {
+                // Atualização de status (admin ou revendedor aprovando)
+                $stmt = $conn->prepare("UPDATE orders SET status = :status WHERE id = :id");
+                $stmt->execute([':status' => $input['status'], ':id' => $input['id']]);
+
+                auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'UPDATE_ORDER_STATUS', 'orders', $input['id'], "Novo status: " . $input['status']);
+
+                // Notificar o dono do pedido sobre a mudança de status
+                if (!empty($orderCheck['userId'])) {
+                    $statusMessages = [
+                        'APPROVED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi aprovado!',
+                        'SHIPPED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi enviado!',
+                        'COMPLETED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi concluído.',
+                        'CANCELED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi cancelado.',
+                        'PENDING' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' está pendente.',
+                        'ANALYSIS' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' está em análise.',
+                    ];
+                    $statusTitles = [
+                        'APPROVED' => 'Pedido Aprovado',
+                        'SHIPPED' => 'Pedido Enviado',
+                        'COMPLETED' => 'Pedido Concluído',
+                        'CANCELED' => 'Pedido Cancelado',
+                        'PENDING' => 'Pedido Pendente',
+                        'ANALYSIS' => 'Pedido em Análise',
+                    ];
+                    $notifType = in_array($input['status'], ['APPROVED', 'SHIPPED', 'COMPLETED']) ? 'success' : ($input['status'] === 'CANCELED' ? 'error' : 'info');
+                    createNotification($conn, $orderCheck['userId'], $statusTitles[$input['status']] ?? 'Atualização de Pedido', $statusMessages[$input['status']] ?? 'Status atualizado.', $notifType, '#/pedidos?open=' . $input['id']);
+                }
+            }
 
             $getObj = $conn->prepare("SELECT * FROM orders WHERE id = :id");
             $getObj->execute([':id' => $input['id']]);
             $updated = $getObj->fetch();
             if($updated) $updated['items'] = json_decode($updated['items']);
 
-            // Notificar o dono do pedido sobre a mudança de status
-            if ($updated && !empty($updated['userId'])) {
-                $statusMessages = [
-                    'APPROVED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi aprovado!',
-                    'SHIPPED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi enviado!',
-                    'COMPLETED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi concluído.',
-                    'CANCELED' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' foi cancelado.',
-                    'PENDING' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' está pendente.',
-                    'ANALYSIS' => 'Seu pedido #' . strtoupper(substr($input['id'], 0, 8)) . ' está em análise.',
-                ];
-                $statusTitles = [
-                    'APPROVED' => 'Pedido Aprovado',
-                    'SHIPPED' => 'Pedido Enviado',
-                    'COMPLETED' => 'Pedido Concluído',
-                    'CANCELED' => 'Pedido Cancelado',
-                    'PENDING' => 'Pedido Pendente',
-                    'ANALYSIS' => 'Pedido em Análise',
-                ];
-                $notifType = in_array($input['status'], ['APPROVED', 'SHIPPED', 'COMPLETED']) ? 'success' : ($input['status'] === 'CANCELED' ? 'error' : 'info');
-                createNotification($conn, $updated['userId'], $statusTitles[$input['status']] ?? 'Atualização de Pedido', $statusMessages[$input['status']] ?? 'Status atualizado.', $notifType, '#/pedidos?open=' . $input['id']);
-            }
-
-            auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'UPDATE_ORDER_STATUS', 'orders', $input['id'], "Novo status: " . $input['status']);
-
             jsonResponse($updated);
             break;
 
         case 'deleteOrder':
             $authUser = requireAuth();
-            if ($authUser['role'] !== 'ADMIN') {
-                http_response_code(403);
-                jsonResponse(["error" => "Sem permissão."]);
-            }
             if (empty($input['id'])) {
                 http_response_code(400);
                 jsonResponse(["error" => "ID obrigatório."]);
             }
+
+            $isAdmin = $authUser['role'] === 'ADMIN';
+
+            // Buscar pedido para verificar permissão e dados para notificação
+            $checkStmt = $conn->prepare("SELECT * FROM orders WHERE id = :id");
+            $checkStmt->execute([':id' => $input['id']]);
+            $orderToDelete = $checkStmt->fetch();
+
+            if (!$orderToDelete) {
+                http_response_code(404);
+                jsonResponse(["error" => "Pedido não encontrado."]);
+            }
+
+            $isOwner = $orderToDelete['userId'] === $authUser['userId'];
+            $ownerCanDelete = $isOwner && in_array($orderToDelete['status'], ['ANALYSIS', 'CANCELED']);
+
+            if (!$isAdmin && !$ownerCanDelete) {
+                http_response_code(403);
+                jsonResponse(["error" => "Sem permissão para excluir este pedido."]);
+            }
+
             $stmt = $conn->prepare("DELETE FROM orders WHERE id = :id");
             $stmt->execute([':id' => $input['id']]);
+
+            $orderRef = strtoupper(substr($input['id'], 0, 8));
             auditLog($conn, $authUser['userId'], $authUser['storeName'] ?? '', 'DELETE_ORDER', 'orders', $input['id']);
+
+            // Notificar admins quando um usuário exclui seu próprio pedido
+            if (!$isAdmin) {
+                $adminsStmt = $conn->query("SELECT id FROM users WHERE role = 'ADMIN'");
+                $admins = $adminsStmt->fetchAll();
+                foreach ($admins as $admin) {
+                    createNotification($conn, $admin['id'], 'Pedido Excluído', 'O pedido #' . $orderRef . ' de ' . sanitizeString($orderToDelete['userStoreName'] ?? '') . ' foi excluído pelo cliente.', 'info', '#/admin/pedidos');
+                }
+            }
+
             jsonResponse(["success" => true]);
             break;
 
