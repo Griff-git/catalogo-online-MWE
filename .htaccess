@@ -67,12 +67,21 @@ RewriteRule . dist/index.html [L]
     AddOutputFilterByType DEFLATE text/html text/plain text/css application/json application/javascript text/xml application/xml
 </IfModule>
 
-# Cache de assets estáticos
+# Não cachear HTML (para sempre carregar a build mais recente)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# Cache de assets estáticos (JS/CSS têm hash no nome, cache seguro)
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/png "access plus 1 month"
     ExpiresByType image/webp "access plus 1 month"
     ExpiresByType text/css "access plus 1 week"
-    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 year"
 </IfModule>
